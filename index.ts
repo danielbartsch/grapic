@@ -11,7 +11,6 @@ const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
   (value / (maxValue - minValue)) * maxCoordinate
 
 const HOUR_MS = 1000 * 60 * 60
-const DAY_MS = HOUR_MS * 24
 
 const getGraph = (
   data: Array<{ ms: number; val: number }>,
@@ -58,10 +57,11 @@ const getGraph = (
   context.textBaseline = "alphabetic"
   context.fillStyle = "#333"
   const floorNowHour = Math.floor(now / HOUR_MS) * HOUR_MS
-  Array.from({ length: 24 }).forEach((_, index) => {
+  const msSpan = sortedData[sortedData.length - 1].ms - sortedData[0].ms
+  Array.from({ length: Math.floor(msSpan / HOUR_MS) }).forEach((_, index) => {
     const ms = floorNowHour - HOUR_MS * index
     const x =
-      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, DAY_MS, drawWidth)
+      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, msSpan, drawWidth)
 
     context.beginPath()
     context.moveTo(x, paddingY)
@@ -86,7 +86,7 @@ const getGraph = (
 
   const temperaturePoints = sortedData.map(({ ms, val }) => ({
     x:
-      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, DAY_MS, drawWidth),
+      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, msSpan, drawWidth),
     y:
       paddingY -
       (valueToCoordinate(
@@ -150,8 +150,6 @@ getGraph(
     { ms: Date.now(), val: 20 },
     { ms: Date.now() - 1000 * 60 * 60 * 6, val: 50 },
     { ms: Date.now() - 1000 * 60 * 60 * 12, val: 25 },
-    { ms: Date.now() - 1000 * 60 * 60 * 18, val: 12.5 },
-    { ms: Date.now() - 1000 * 60 * 60 * 24, val: 20 },
   ],
   "./test_sideeffects/24.png"
   //"°C"

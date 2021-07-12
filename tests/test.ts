@@ -1,25 +1,30 @@
 import { getGraph } from "../index"
 
-getGraph(
-  [
-    { ms: Date.now() - 1000 * 60 * 60 * 0, val: 10 },
-    { ms: Date.now() - 1000 * 60 * 60 * 24, val: 100 },
+getGraph({
+  data: [
+    { ms: 1000 * 60 * 60 * 0, val: 10 },
+    { ms: 1000 * 60 * 60 * 24, val: 100 },
   ],
-  __dirname + "/two24h.png"
-)
+  fileName: __dirname + "/two24h.png",
+  title: "two24h",
+})
 
-getGraph(
-  [
-    { ms: Date.now() - 1000 * 60 * 60 * 0, val: 10 },
-    { ms: Date.now() - 1000 * 60 * 60 * 2, val: 100 },
+getGraph({
+  data: [
+    { ms: 1000 * 60 * 60 * 0, val: 10 },
+    { ms: 1000 * 60 * 60 * 1, val: 30 },
+    { ms: 1000 * 60 * 60 * 2, val: 10 },
+    { ms: 1000 * 60 * 60 * 3, val: 100 },
   ],
-  __dirname + "/2h.png"
-)
+  fileName: __dirname + "/3h.png",
+  title: "3h",
+})
 
-getGraph(
-  [
-    { ms: Date.now() - 1000 * 60 * 60 * 0, val: -10 },
-    { ms: Date.now() - 1000 * 60 * 60 * 12, val: 20 },
+getGraph({
+  data: [
+    { ms: 1000 * 60 * 60 * 0, val: -10 },
+    { ms: 1000 * 60 * 60 * 12, val: 20 },
   ],
-  __dirname + "/negativeValues.png"
-)
+  fileName: __dirname + "/negativeValues.png",
+  title: "negativeValues",
+})

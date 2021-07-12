@@ -12,18 +12,17 @@ const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
 
 const HOUR_MS = 1000 * 60 * 60
 
-export const getGraph = (
-  data: Array<{ ms: number; val: number }>,
-  savePath: string,
-  unit: string = ""
-) => {
-  const now = new Date().getTime()
-
-  let todayHelper = new Date()
-  todayHelper.setHours(0)
-  todayHelper.setMinutes(0)
-  todayHelper.setSeconds(0)
-
+export const getGraph = ({
+  data,
+  fileName,
+  unit = "",
+  title = "",
+}: {
+  data: Array<{ ms: number; val: number }>
+  fileName: string
+  unit?: string
+  title?: string
+}) => {
   // sorting, so results are consistent (otherwise order is not guaranteed)
   const sortedData = data.sort((a, b) => a.ms - b.ms)
 
@@ -56,10 +55,10 @@ export const getGraph = (
   context.font = "15px monospace"
   context.textBaseline = "alphabetic"
   context.fillStyle = "#333"
-  const floorNowHour = Math.floor(now / HOUR_MS) * HOUR_MS
+
   const msSpan = sortedData[sortedData.length - 1].ms - sortedData[0].ms
   Array.from({ length: Math.floor(msSpan / HOUR_MS) }).forEach((_, index) => {
-    const ms = floorNowHour - HOUR_MS * index
+    const ms = HOUR_MS * index
     const x =
       paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, msSpan, drawWidth)
 
@@ -132,15 +131,14 @@ export const getGraph = (
   )
 
   context.fillStyle = "#333"
-  const todaysDate = date(now)
   context.fillText(maximalTempData.val + unit, paddingX, paddingY * 2)
   context.fillText(minimalTempData.val + unit, paddingX, HEIGHT - paddingY * 2)
   context.fillText(
-    todaysDate,
-    WIDTH - paddingX - context.measureText(todaysDate).width,
+    title,
+    WIDTH - paddingX - context.measureText(title).width,
     paddingY * 2
   )
 
   const fs = require("fs")
-  canvas.createPNGStream().pipe(fs.createWriteStream(savePath))
+  canvas.createPNGStream().pipe(fs.createWriteStream(fileName))
 }

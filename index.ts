@@ -12,7 +12,7 @@ const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
 
 const HOUR_MS = 1000 * 60 * 60
 
-const getGraph = (
+export const getGraph = (
   data: Array<{ ms: number; val: number }>,
   savePath: string,
   unit: string = ""
@@ -144,13 +144,3 @@ const getGraph = (
   const fs = require("fs")
   canvas.createPNGStream().pipe(fs.createWriteStream(savePath))
 }
-
-getGraph(
-  [
-    { ms: Date.now(), val: 20 },
-    { ms: Date.now() - 1000 * 60 * 60 * 6, val: 50 },
-    { ms: Date.now() - 1000 * 60 * 60 * 12, val: 25 },
-  ],
-  "./test_sideeffects/24.png"
-  //"°C"
-)

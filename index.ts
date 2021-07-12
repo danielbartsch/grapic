@@ -1,0 +1,158 @@
+import { createCanvas } from "canvas"
+
+const date = (dateMilliseconds) => {
+  const dateObj = new Date(dateMilliseconds)
+  return `${dateObj.getDate()}.${
+    dateObj.getMonth() + 1
+  }.${dateObj.getFullYear()}`
+}
+
+const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
+  (value / (maxValue - minValue)) * maxCoordinate
+
+const HOUR_MS = 1000 * 60 * 60
+const DAY_MS = HOUR_MS * 24
+
+const getGraph = (
+  data: Array<{ ms: number; val: number }>,
+  savePath: string,
+  unit: string = ""
+) => {
+  const now = new Date().getTime()
+
+  let todayHelper = new Date()
+  todayHelper.setHours(0)
+  todayHelper.setMinutes(0)
+  todayHelper.setSeconds(0)
+
+  // sorting, so results are consistent (otherwise order is not guaranteed)
+  const sortedData = data.sort((a, b) => a.ms - b.ms)
+
+  const validData = sortedData.filter(({ val }) => Number.isFinite(val))
+
+  const minimalTemperature = Math.min(...validData.map(({ val }) => val))
+  const minimalTempData = validData.find(
+    ({ val }) => val === minimalTemperature
+  )
+
+  const maximalTemperature = Math.max(...validData.map(({ val }) => val))
+  const maximalTempData = validData.find(
+    ({ val }) => val === maximalTemperature
+  )
+
+  const nowTempData = validData[validData.length - 1]
+
+  const WIDTH = 900
+  const HEIGHT = 600
+  const canvas = createCanvas(WIDTH, HEIGHT)
+  const context = canvas.getContext("2d")
+  context.fillStyle = "#F5F7F2"
+  context.fillRect(0, 0, WIDTH, HEIGHT)
+
+  const paddingX = 15
+  const paddingY = 15
+  const drawWidth = WIDTH - paddingX * 2
+  const drawHeight = HEIGHT - paddingY * 2
+
+  context.font = "15px monospace"
+  context.textBaseline = "alphabetic"
+  context.fillStyle = "#333"
+  const floorNowHour = Math.floor(now / HOUR_MS) * HOUR_MS
+  Array.from({ length: 24 }).forEach((_, index) => {
+    const ms = floorNowHour - HOUR_MS * index
+    const x =
+      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, DAY_MS, drawWidth)
+
+    context.beginPath()
+    context.moveTo(x, paddingY)
+    context.lineTo(x, HEIGHT - paddingY)
+    const hour = new Date(ms).getHours()
+    if (hour % 3 === 0) {
+      context.save()
+      context.translate(x, HEIGHT - paddingY)
+      context.rotate((Math.PI * 3) / 2)
+      context.fillText(hour + "h", 36, -3)
+      context.restore()
+    }
+    if (hour % 6 === 0) {
+      context.lineWidth = 2
+      context.strokeStyle = "#bbb"
+    } else {
+      context.lineWidth = 1
+      context.strokeStyle = "#ddd"
+    }
+    context.stroke()
+  })
+
+  const temperaturePoints = sortedData.map(({ ms, val }) => ({
+    x:
+      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, DAY_MS, drawWidth),
+    y:
+      paddingY -
+      (valueToCoordinate(
+        val - minimalTempData.val,
+        minimalTempData.val,
+        maximalTempData.val,
+        drawHeight
+      ) -
+        drawHeight),
+  }))
+
+  context.beginPath()
+  context.strokeStyle = "#333"
+  context.moveTo(temperaturePoints[0].x, temperaturePoints[0].y)
+  temperaturePoints.slice(1).forEach(({ x, y }) => {
+    context.lineTo(x, y)
+  })
+  context.stroke()
+
+  const nowText = nowTempData.val + unit
+  const nowTemperatureCoordinate =
+    temperaturePoints[temperaturePoints.length - 1]
+  const measuredNow = context.measureText(nowText)
+  const nowX = WIDTH - paddingX * 2 - measuredNow.width
+  const nowY = nowTemperatureCoordinate.y
+  const padding = 5
+  context.fillStyle = "#fff8"
+  context.fillRect(
+    nowX - padding,
+    nowY - measuredNow.actualBoundingBoxAscent - padding,
+    measuredNow.width + padding * 2,
+    measuredNow.actualBoundingBoxAscent +
+      measuredNow.actualBoundingBoxDescent +
+      padding * 2
+  )
+  context.fillStyle = "#f65"
+  context.fillText(nowText, nowX, nowY)
+  context.fillRect(
+    nowTemperatureCoordinate.x - 2,
+    nowTemperatureCoordinate.y - 2,
+    4,
+    4
+  )
+
+  context.fillStyle = "#333"
+  const todaysDate = date(now)
+  context.fillText(maximalTempData.val + unit, paddingX, paddingY * 2)
+  context.fillText(minimalTempData.val + unit, paddingX, HEIGHT - paddingY * 2)
+  context.fillText(
+    todaysDate,
+    WIDTH - paddingX - context.measureText(todaysDate).width,
+    paddingY * 2
+  )
+
+  const fs = require("fs")
+  canvas.createPNGStream().pipe(fs.createWriteStream(savePath))
+}
+
+getGraph(
+  [
+    { ms: Date.now(), val: 20 },
+    { ms: Date.now() - 1000 * 60 * 60 * 6, val: 50 },
+    { ms: Date.now() - 1000 * 60 * 60 * 12, val: 25 },
+    { ms: Date.now() - 1000 * 60 * 60 * 18, val: 12.5 },
+    { ms: Date.now() - 1000 * 60 * 60 * 24, val: 20 },
+  ],
+  "./test_sideeffects/24.png"
+  //"°C"
+)

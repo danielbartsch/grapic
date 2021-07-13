@@ -1,12 +1,5 @@
 import { createCanvas } from "canvas"
 
-const date = (dateMilliseconds) => {
-  const dateObj = new Date(dateMilliseconds)
-  return `${dateObj.getDate()}.${
-    dateObj.getMonth() + 1
-  }.${dateObj.getFullYear()}`
-}
-
 const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
   (value / (maxValue - minValue)) * maxCoordinate
 
@@ -140,5 +133,7 @@ export const getGraph = ({
   )
 
   const fs = require("fs")
-  canvas.createPNGStream().pipe(fs.createWriteStream(fileName))
+  const outStream = fs.createWriteStream(fileName)
+  canvas.createPNGStream().pipe(outStream)
+  return outStream
 }

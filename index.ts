@@ -99,6 +99,10 @@ export const getGraph = ({
   })
   context.stroke()
 
+  context.fillStyle = "#dda900"
+  context.textBaseline = "middle"
+  context.font = "30px monospace"
+
   const nowText = nowTempData.value + unit
   const nowTemperatureCoordinate =
     temperaturePoints[temperaturePoints.length - 1]

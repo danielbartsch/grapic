@@ -110,3 +110,21 @@ getGraph({
   title: "13.7.2021",
   unit: "°C",
 })
+
+getGraph({
+  data: [
+    { time: 1626129252419, value: 20.6 },
+    { time: 1626145322819, value: 17.7 },
+    { time: 1626160010819, value: 21.3 },
+    { time: 1626171242819, value: 29.6 },
+    { time: 1626183166019, value: 37.1 },
+    { time: 1626197508419, value: 30.2 },
+  ],
+  markers: [
+    { time: (1626145322819 + 1626160010819) / 2, value: "Sonnenaufgang" },
+    { time: 1626197508419, value: "Sonnenuntergang" },
+  ],
+  fileName: __dirname + "/marker.png",
+  title: "13.7.2021",
+  unit: "°C",
+})

@@ -6,11 +6,13 @@ const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
 
 export const getGraph = ({
   data,
+  markers,
   fileName,
   unit = "",
   title = "",
 }: {
   data: Array<{ time: number; value: number }>
+  markers?: Array<{ time: number; value: string }>
   fileName: string
   unit?: string
   title?: string
@@ -91,6 +93,24 @@ export const getGraph = ({
         drawHeight),
   }))
 
+  if (markers) {
+    markers.forEach(({ time, value }) => {
+      const x = paddingX + valueToCoordinate(time, minTime, maxTime, drawWidth)
+      context.beginPath()
+      context.moveTo(x, paddingY)
+      context.lineTo(x, HEIGHT - paddingY)
+      context.save()
+      context.translate(x, HEIGHT - paddingY)
+      context.rotate((Math.PI * 3) / 2)
+      context.strokeStyle = "#dda900"
+      context.fillStyle = "#dda900"
+      context.fillText(value, 36, -3)
+      context.lineWidth = 2
+      context.stroke()
+      context.restore()
+    })
+  }
+
   context.beginPath()
   context.strokeStyle = "#333"
   context.moveTo(temperaturePoints[0].x, temperaturePoints[0].y)
@@ -99,7 +119,6 @@ export const getGraph = ({
   })
   context.stroke()
 
-  context.fillStyle = "#dda900"
   context.textBaseline = "middle"
   context.font = "30px monospace"
 

@@ -2,9 +2,7 @@ const { createCanvas } = require("canvas")
 const fs = require("fs")
 
 const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
-  (value / (maxValue - minValue)) * maxCoordinate
-
-const HOUR_MS = 1000 * 60 * 60
+  ((value - minValue) / (maxValue - minValue)) * maxCoordinate
 
 export const getGraph = ({
   data,
@@ -12,24 +10,24 @@ export const getGraph = ({
   unit = "",
   title = "",
 }: {
-  data: Array<{ ms: number; val: number }>
+  data: Array<{ time: number; value: number }>
   fileName: string
   unit?: string
   title?: string
 }) => {
   // sorting, so results are consistent (otherwise order is not guaranteed)
-  const sortedData = data.sort((a, b) => a.ms - b.ms)
+  const validData = data
+    .sort((a, b) => a.time - b.time)
+    .filter(({ value }) => Number.isFinite(value))
 
-  const validData = sortedData.filter(({ val }) => Number.isFinite(val))
-
-  const minimalTemperature = Math.min(...validData.map(({ val }) => val))
+  const minimalTemperature = Math.min(...validData.map(({ value }) => value))
   const minimalTempData = validData.find(
-    ({ val }) => val === minimalTemperature
+    ({ value }) => value === minimalTemperature
   )
 
-  const maximalTemperature = Math.max(...validData.map(({ val }) => val))
+  const maximalTemperature = Math.max(...validData.map(({ value }) => value))
   const maximalTempData = validData.find(
-    ({ val }) => val === maximalTemperature
+    ({ value }) => value === maximalTemperature
   )
 
   const nowTempData = validData[validData.length - 1]
@@ -50,16 +48,19 @@ export const getGraph = ({
   context.textBaseline = "alphabetic"
   context.fillStyle = "#333"
 
-  const msSpan = sortedData[sortedData.length - 1].ms - sortedData[0].ms
-  Array.from({ length: Math.floor(msSpan / HOUR_MS) }).forEach((_, index) => {
-    const ms = HOUR_MS * index
-    const x =
-      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, msSpan, drawWidth)
+  const timeSpan = validData[validData.length - 1].time - validData[0].time
+  const minTime = validData[0].time
+  const maxTime = validData[validData.length - 1].time
+
+  const HOUR_MS = 1000 * 60 * 60
+  Array.from({ length: Math.ceil(timeSpan / HOUR_MS) }).forEach((_, index) => {
+    const time = HOUR_MS * index + minTime
+    const x = paddingX + valueToCoordinate(time, minTime, maxTime, drawWidth)
 
     context.beginPath()
     context.moveTo(x, paddingY)
     context.lineTo(x, HEIGHT - paddingY)
-    const hour = new Date(ms).getHours()
+    const hour = new Date(time).getHours()
     if (hour % 3 === 0) {
       context.save()
       context.translate(x, HEIGHT - paddingY)
@@ -77,15 +78,14 @@ export const getGraph = ({
     context.stroke()
   })
 
-  const temperaturePoints = sortedData.map(({ ms, val }) => ({
-    x:
-      paddingX + valueToCoordinate(ms - sortedData[0].ms, 0, msSpan, drawWidth),
+  const temperaturePoints = validData.map(({ time, value }) => ({
+    x: paddingX + valueToCoordinate(time, minTime, maxTime, drawWidth),
     y:
       paddingY -
       (valueToCoordinate(
-        val - minimalTempData.val,
-        minimalTempData.val,
-        maximalTempData.val,
+        value,
+        minimalTempData.value,
+        maximalTempData.value,
         drawHeight
       ) -
         drawHeight),
@@ -99,7 +99,7 @@ export const getGraph = ({
   })
   context.stroke()
 
-  const nowText = nowTempData.val + unit
+  const nowText = nowTempData.value + unit
   const nowTemperatureCoordinate =
     temperaturePoints[temperaturePoints.length - 1]
   const measuredNow = context.measureText(nowText)
@@ -125,8 +125,12 @@ export const getGraph = ({
   )
 
   context.fillStyle = "#333"
-  context.fillText(maximalTempData.val + unit, paddingX, paddingY * 2)
-  context.fillText(minimalTempData.val + unit, paddingX, HEIGHT - paddingY * 2)
+  context.fillText(maximalTempData.value + unit, paddingX, paddingY * 2)
+  context.fillText(
+    minimalTempData.value + unit,
+    paddingX,
+    HEIGHT - paddingY * 2
+  )
   context.fillText(
     title,
     WIDTH - paddingX - context.measureText(title).width,

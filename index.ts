@@ -1,4 +1,5 @@
-import { createCanvas } from "canvas"
+const { createCanvas } = require("canvas")
+const fs = require("fs")
 
 const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
   (value / (maxValue - minValue)) * maxCoordinate
@@ -132,7 +133,6 @@ export const getGraph = ({
     paddingY * 2
   )
 
-  const fs = require("fs")
   const outStream = fs.createWriteStream(fileName)
   canvas.createPNGStream().pipe(outStream)
   return outStream

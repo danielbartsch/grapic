@@ -4,6 +4,13 @@ const fs = require("fs")
 const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
   ((value - minValue) / (maxValue - minValue)) * maxCoordinate
 
+const WIDTH = 900
+const HEIGHT = 600
+const PADDING_X = 15
+const PADDING_Y = 15
+const DRAW_WIDTH = WIDTH - PADDING_X * 2
+const DRAW_HEIGHT = HEIGHT - PADDING_Y * 2
+
 export const getGraph = ({
   data,
   markers,
@@ -22,33 +29,19 @@ export const getGraph = ({
     .sort((a, b) => a.time - b.time)
     .filter(({ value }) => Number.isFinite(value))
 
-  const minimalTemperature = Math.min(...validData.map(({ value }) => value))
-  const minimalTempData = validData.find(
-    ({ value }) => value === minimalTemperature
-  )
+  const minValue = Math.min(...validData.map(({ value }) => value))
+  const minValueDataPoint = validData.find(({ value }) => value === minValue)
 
-  const maximalTemperature = Math.max(...validData.map(({ value }) => value))
-  const maximalTempData = validData.find(
-    ({ value }) => value === maximalTemperature
-  )
+  const maxValue = Math.max(...validData.map(({ value }) => value))
+  const maxValueDataPoint = validData.find(({ value }) => value === maxValue)
 
-  const nowTempData = validData[validData.length - 1]
-
-  const WIDTH = 900
-  const HEIGHT = 600
   const canvas = createCanvas(WIDTH, HEIGHT)
   const context = canvas.getContext("2d")
   context.fillStyle = "#F5F7F2"
   context.fillRect(0, 0, WIDTH, HEIGHT)
 
-  const paddingX = 15
-  const paddingY = 15
-  const drawWidth = WIDTH - paddingX * 2
-  const drawHeight = HEIGHT - paddingY * 2
-
   context.font = "15px monospace"
   context.textBaseline = "alphabetic"
-  context.fillStyle = "#333"
 
   const timeSpan = validData[validData.length - 1].time - validData[0].time
   const minTime = validData[0].time
@@ -57,64 +50,48 @@ export const getGraph = ({
   const HOUR_MS = 1000 * 60 * 60
   Array.from({ length: Math.ceil(timeSpan / HOUR_MS) }).forEach((_, index) => {
     const time = HOUR_MS * index + minTime
-    const x = paddingX + valueToCoordinate(time, minTime, maxTime, drawWidth)
-
-    context.beginPath()
-    context.moveTo(x, paddingY)
-    context.lineTo(x, HEIGHT - paddingY)
     const hour = new Date(time).getHours()
-    if (hour % 3 === 0) {
-      context.save()
-      context.translate(x, HEIGHT - paddingY)
-      context.rotate((Math.PI * 3) / 2)
-      context.fillText(hour + "h", 36, -3)
-      context.restore()
-    }
-    if (hour % 6 === 0) {
-      context.lineWidth = 2
-      context.strokeStyle = "#bbb"
-    } else {
-      context.lineWidth = 1
-      context.strokeStyle = "#ddd"
-    }
-    context.stroke()
+    drawVerticalLine({
+      label: hour % 3 === 0 ? hour + "h" : "",
+      x: PADDING_X + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
+      context,
+      width: hour % 6 === 0 ? 2 : 1,
+      lineColor: hour % 6 === 0 ? "#bbb" : "#ddd",
+      textColor: "#333",
+    })
   })
 
-  const temperaturePoints = validData.map(({ time, value }) => ({
-    x: paddingX + valueToCoordinate(time, minTime, maxTime, drawWidth),
+  const dataPoints = validData.map(({ time, value }) => ({
+    x: PADDING_X + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
     y:
-      paddingY -
+      PADDING_Y -
       (valueToCoordinate(
         value,
-        minimalTempData.value,
-        maximalTempData.value,
-        drawHeight
+        minValueDataPoint.value,
+        maxValueDataPoint.value,
+        DRAW_HEIGHT
       ) -
-        drawHeight),
+        DRAW_HEIGHT),
   }))
 
   if (markers) {
-    markers.forEach(({ time, value }) => {
-      const x = paddingX + valueToCoordinate(time, minTime, maxTime, drawWidth)
-      context.beginPath()
-      context.moveTo(x, paddingY)
-      context.lineTo(x, HEIGHT - paddingY)
-      context.save()
-      context.translate(x, HEIGHT - paddingY)
-      context.rotate((Math.PI * 3) / 2)
-      context.strokeStyle = "#dda900"
-      context.fillStyle = "#dda900"
-      context.fillText(value, 36, -3)
-      context.lineWidth = 2
-      context.stroke()
-      context.restore()
-    })
+    markers.forEach(({ time, value }) =>
+      drawVerticalLine({
+        label: value,
+        x: PADDING_X + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
+        context,
+        width: 2,
+        lineColor: "#dda900",
+        textColor: "#dda900",
+      })
+    )
   }
 
   context.beginPath()
   context.strokeStyle = "#333"
-  context.moveTo(temperaturePoints[0].x, temperaturePoints[0].y)
-  temperaturePoints.slice(1).forEach(({ x, y }) => {
+  context.lineWidth = 1
+  context.moveTo(dataPoints[0].x, dataPoints[0].y)
+  dataPoints.slice(1).forEach(({ x, y }) => {
     context.lineTo(x, y)
   })
   context.stroke()
@@ -122,12 +99,12 @@ export const getGraph = ({
   context.textBaseline = "middle"
   context.font = "30px monospace"
 
-  const nowText = nowTempData.value + unit
-  const nowTemperatureCoordinate =
-    temperaturePoints[temperaturePoints.length - 1]
+  const nowValueData = validData[validData.length - 1]
+  const nowText = nowValueData.value + unit
+  const nowValueCoordinate = dataPoints[dataPoints.length - 1]
   const measuredNow = context.measureText(nowText)
-  const nowX = WIDTH - paddingX * 2 - measuredNow.width
-  const nowY = nowTemperatureCoordinate.y
+  const nowX = WIDTH - PADDING_X * 2 - measuredNow.width
+  const nowY = nowValueCoordinate.y
   const padding = 5
   context.fillStyle = "#fff8"
   context.fillRect(
@@ -140,27 +117,51 @@ export const getGraph = ({
   )
   context.fillStyle = "#f65"
   context.fillText(nowText, nowX, nowY)
-  context.fillRect(
-    nowTemperatureCoordinate.x - 2,
-    nowTemperatureCoordinate.y - 2,
-    4,
-    4
-  )
+  context.fillRect(nowValueCoordinate.x - 2, nowValueCoordinate.y - 2, 4, 4)
 
   context.fillStyle = "#333"
-  context.fillText(maximalTempData.value + unit, paddingX, paddingY * 2)
+  context.fillText(maxValueDataPoint.value + unit, PADDING_X, PADDING_Y * 2)
   context.fillText(
-    minimalTempData.value + unit,
-    paddingX,
-    HEIGHT - paddingY * 2
+    minValueDataPoint.value + unit,
+    PADDING_X,
+    HEIGHT - PADDING_Y * 2
   )
   context.fillText(
     title,
-    WIDTH - paddingX - context.measureText(title).width,
-    paddingY * 2
+    WIDTH - PADDING_X - context.measureText(title).width,
+    PADDING_Y * 2
   )
 
   const outStream = fs.createWriteStream(fileName)
   canvas.createPNGStream().pipe(outStream)
   return outStream
+}
+
+const drawVerticalLine = ({
+  label = "",
+  x,
+  context,
+  width,
+  lineColor,
+  textColor,
+}: {
+  label?: string
+  x: number
+  context: CanvasRenderingContext2D
+  width: number
+  lineColor: string
+  textColor: string
+}) => {
+  context.beginPath()
+  context.moveTo(x, PADDING_Y)
+  context.lineTo(x, HEIGHT - PADDING_Y)
+  context.save()
+  context.translate(x, HEIGHT - PADDING_Y)
+  context.rotate((Math.PI * 3) / 2)
+  context.strokeStyle = lineColor
+  context.fillStyle = textColor
+  context.fillText(label, 36, -3)
+  context.lineWidth = width
+  context.stroke()
+  context.restore()
 }

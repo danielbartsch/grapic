@@ -43,9 +43,9 @@ export const getGraph = ({
   context.font = "15px monospace"
   context.textBaseline = "alphabetic"
 
-  const timeSpan = validData[validData.length - 1].time - validData[0].time
   const minTime = validData[0].time
   const maxTime = validData[validData.length - 1].time
+  const timeSpan = maxTime - minTime
 
   const HOUR_MS = 1000 * 60 * 60
   Array.from({ length: Math.ceil(timeSpan / HOUR_MS) }).forEach((_, index) => {

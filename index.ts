@@ -253,18 +253,24 @@ const drawDataPointLabel = ({
   context.font = "30px monospace"
   const measuredLabel = context.measureText(label)
   const labelDataPointGap = 32
-  const newX = x - measuredLabel.width - labelDataPointGap
+  const labelX =
+    x - measuredLabel.width - labelDataPointGap < PADDING_LEFT
+      ? x + labelDataPointGap
+      : x - measuredLabel.width - labelDataPointGap
   const labelBoxPadding = 8
   context.fillStyle = "#fff8"
   context.fillRect(
-    newX - labelBoxPadding,
+    labelX - labelBoxPadding,
     y - measuredLabel.actualBoundingBoxAscent - labelBoxPadding,
     measuredLabel.width + labelBoxPadding * 2,
     measuredLabel.actualBoundingBoxAscent +
       measuredLabel.actualBoundingBoxDescent +
       labelBoxPadding * 2
   )
+
   context.fillStyle = "#f65"
-  context.fillText(label, newX, y)
-  context.fillRect(x - 2, y - 2, 4, 4)
+  context.fillText(label, labelX, y)
+
+  const size = 6
+  context.fillRect(x - size / 2, y - size / 2, size, size)
 }

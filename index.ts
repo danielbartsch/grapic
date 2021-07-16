@@ -2,9 +2,6 @@ import { getAxisTicks, roundAxis } from "./axisrounding"
 const { createCanvas } = require("canvas")
 const fs = require("fs")
 
-const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
-  ((value - minValue) / (maxValue - minValue)) * maxCoordinate
-
 const WIDTH = 900
 const HEIGHT = 600
 const PADDING_LEFT = 45
@@ -13,6 +10,11 @@ const PADDING_Y = 15
 const DRAW_WIDTH = WIDTH - (PADDING_LEFT + PADDING_RIGHT)
 const DRAW_HEIGHT = HEIGHT - PADDING_Y * 2
 
+type DataPoint = {
+  time: number
+  value: number
+}
+
 export const getGraph = ({
   data,
   markers,
@@ -20,7 +22,7 @@ export const getGraph = ({
   unit = "",
   title = "",
 }: {
-  data: Array<{ time: number; value: number }>
+  data: Array<DataPoint>
   markers?: Array<{ time: number; value: string }>
   fileName: string
   unit?: string
@@ -55,7 +57,10 @@ export const getGraph = ({
     const hour = new Date(time).getHours()
     drawVerticalLine({
       label: hour % 3 === 0 ? hour + "h" : "",
-      x: PADDING_LEFT + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
+      x: dataPointToXCoordinate(
+        { value: 0, time },
+        { min: minTime, max: maxTime }
+      ),
       context,
       width: hour % 6 === 0 ? 2 : 1,
       lineColor: hour % 6 === 0 ? "#bbb" : "#ddd",
@@ -75,18 +80,23 @@ export const getGraph = ({
     max,
   })
 
-  const dataPoints = validData.map(({ time, value }) => ({
-    x: PADDING_LEFT + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
-    y:
-      PADDING_Y -
-      (valueToCoordinate(value, min, max, DRAW_HEIGHT) - DRAW_HEIGHT),
-  }))
+  const dataPoints = validData.map((dataPoint) =>
+    dataPointToCoordinate(dataPoint, {
+      minTime,
+      maxTime,
+      minValue: min,
+      maxValue: max,
+    })
+  )
 
   if (markers) {
     markers.forEach(({ time, value }) =>
       drawVerticalLine({
         label: value,
-        x: PADDING_LEFT + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
+        x: dataPointToXCoordinate(
+          { time, value: 0 },
+          { min: minTime, max: maxTime }
+        ),
         context,
         width: 2,
         lineColor: "#dda900",
@@ -145,6 +155,23 @@ export const getGraph = ({
   return outStream
 }
 
+const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
+  ((value - minValue) / (maxValue - minValue)) * maxCoordinate
+
+const dataPointToXCoordinate = ({ time }: DataPoint, { min, max }) =>
+  PADDING_LEFT + valueToCoordinate(time, min, max, DRAW_WIDTH)
+
+const dataPointToYCoordinate = ({ value }: DataPoint, { min, max }) =>
+  PADDING_Y - (valueToCoordinate(value, min, max, DRAW_HEIGHT) - DRAW_HEIGHT)
+
+const dataPointToCoordinate = (
+  dataPoint: DataPoint,
+  { minTime, maxTime, minValue, maxValue }
+) => ({
+  x: dataPointToXCoordinate(dataPoint, { min: minTime, max: maxTime }),
+  y: dataPointToYCoordinate(dataPoint, { min: minValue, max: maxValue }),
+})
+
 const drawVerticalLine = ({
   label = "",
   x,
@@ -183,9 +210,7 @@ const drawYAxis = ({ context, ticks, min, max }) => {
 
   context.textBaseline = "middle"
   ticks.forEach((tickY) => {
-    const y =
-      PADDING_Y -
-      (valueToCoordinate(tickY, min, max, DRAW_HEIGHT) - DRAW_HEIGHT)
+    const y = dataPointToYCoordinate({ value: tickY, time: 0 }, { min, max })
     context.fillStyle = "#333"
     context.fillText(
       tickY,

@@ -114,28 +114,15 @@ export const getGraph = ({
   })
   context.stroke()
 
-  context.textBaseline = "middle"
-  context.font = "30px monospace"
-
-  const nowValueData = validData[validData.length - 1]
-  const nowText = nowValueData.value + unit
-  const nowValueCoordinate = dataPoints[dataPoints.length - 1]
-  const measuredNow = context.measureText(nowText)
-  const nowX = DRAW_WIDTH - measuredNow.width
-  const nowY = nowValueCoordinate.y
-  const padding = 5
-  context.fillStyle = "#fff8"
-  context.fillRect(
-    nowX - padding,
-    nowY - measuredNow.actualBoundingBoxAscent - padding,
-    measuredNow.width + padding * 2,
-    measuredNow.actualBoundingBoxAscent +
-      measuredNow.actualBoundingBoxDescent +
-      padding * 2
-  )
-  context.fillStyle = "#f65"
-  context.fillText(nowText, nowX, nowY)
-  context.fillRect(nowValueCoordinate.x - 2, nowValueCoordinate.y - 2, 4, 4)
+  drawDataPointLabel({
+    context,
+    dataPoint: validData[validData.length - 1],
+    label: validData[validData.length - 1].value + unit,
+    maxTime,
+    maxValue: max,
+    minTime,
+    minValue: min,
+  })
 
   context.fillStyle = "#333"
   context.fillText(maxValueDataPoint.value + unit, PADDING_LEFT, PADDING_Y * 2)
@@ -222,4 +209,47 @@ const drawYAxis = ({ context, ticks, min, max }) => {
     context.lineTo(PADDING_LEFT - axisPadding, y)
     context.stroke()
   })
+}
+
+const drawDataPointLabel = ({
+  context,
+  dataPoint,
+  label,
+  maxTime,
+  maxValue,
+  minTime,
+  minValue,
+}: {
+  dataPoint: DataPoint
+  label: string
+  context: CanvasRenderingContext2D
+  maxTime: number
+  maxValue: number
+  minTime: number
+  minValue: number
+}) => {
+  const nowValueCoordinate = dataPointToCoordinate(dataPoint, {
+    minTime,
+    maxTime,
+    minValue,
+    maxValue,
+  })
+  const measuredNow = context.measureText(label)
+  const nowX = DRAW_WIDTH - measuredNow.width
+  const nowY = nowValueCoordinate.y
+  const padding = 5
+  context.textBaseline = "middle"
+  context.font = "30px monospace"
+  context.fillStyle = "#fff8"
+  context.fillRect(
+    nowX - padding,
+    nowY - measuredNow.actualBoundingBoxAscent - padding,
+    measuredNow.width + padding * 2,
+    measuredNow.actualBoundingBoxAscent +
+      measuredNow.actualBoundingBoxDescent +
+      padding * 2
+  )
+  context.fillStyle = "#f65"
+  context.fillText(label, nowX, nowY)
+  context.fillRect(nowValueCoordinate.x - 2, nowValueCoordinate.y - 2, 4, 4)
 }

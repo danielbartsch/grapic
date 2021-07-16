@@ -1,3 +1,4 @@
+import { roundAxis } from "./axisrounding"
 const { createCanvas } = require("canvas")
 const fs = require("fs")
 
@@ -61,17 +62,16 @@ export const getGraph = ({
     })
   })
 
+  const { min, max } = roundAxis({
+    minValue: minValueDataPoint.value,
+    maxValue: maxValueDataPoint.value,
+  })
+
   const dataPoints = validData.map(({ time, value }) => ({
     x: PADDING_X + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
     y:
       PADDING_Y -
-      (valueToCoordinate(
-        value,
-        minValueDataPoint.value,
-        maxValueDataPoint.value,
-        DRAW_HEIGHT
-      ) -
-        DRAW_HEIGHT),
+      (valueToCoordinate(value, min, max, DRAW_HEIGHT) - DRAW_HEIGHT),
   }))
 
   if (markers) {

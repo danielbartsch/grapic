@@ -1,4 +1,4 @@
-import { roundAxis } from "./axisrounding"
+import { getAxisTicks, roundAxis } from "./axisrounding"
 const { createCanvas } = require("canvas")
 const fs = require("fs")
 
@@ -7,7 +7,7 @@ const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
 
 const WIDTH = 900
 const HEIGHT = 600
-const PADDING_LEFT = 15
+const PADDING_LEFT = 45
 const PADDING_RIGHT = 15
 const PADDING_Y = 15
 const DRAW_WIDTH = WIDTH - (PADDING_LEFT + PADDING_RIGHT)
@@ -66,6 +66,13 @@ export const getGraph = ({
   const { min, max } = roundAxis({
     minValue: minValueDataPoint.value,
     maxValue: maxValueDataPoint.value,
+  })
+
+  drawYAxis({
+    context,
+    ticks: getAxisTicks({ minValue: min, maxValue: max }),
+    min,
+    max,
   })
 
   const dataPoints = validData.map(({ time, value }) => ({
@@ -165,4 +172,29 @@ const drawVerticalLine = ({
   context.lineWidth = width
   context.stroke()
   context.restore()
+}
+
+const drawYAxis = ({ context, ticks, min, max }) => {
+  context.beginPath()
+  context.moveTo(PADDING_LEFT, PADDING_Y)
+  context.lineTo(PADDING_LEFT, PADDING_Y + DRAW_HEIGHT)
+  context.stroke()
+  const axisPadding = 8
+
+  context.textBaseline = "middle"
+  ticks.forEach((tickY) => {
+    const y =
+      PADDING_Y -
+      (valueToCoordinate(tickY, min, max, DRAW_HEIGHT) - DRAW_HEIGHT)
+    context.fillStyle = "#333"
+    context.fillText(
+      tickY,
+      PADDING_LEFT - context.measureText(tickY).width - axisPadding * 1.5,
+      y
+    )
+    context.beginPath()
+    context.moveTo(PADDING_LEFT, y)
+    context.lineTo(PADDING_LEFT - axisPadding, y)
+    context.stroke()
+  })
 }

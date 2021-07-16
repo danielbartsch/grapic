@@ -7,9 +7,10 @@ const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
 
 const WIDTH = 900
 const HEIGHT = 600
-const PADDING_X = 15
+const PADDING_LEFT = 15
+const PADDING_RIGHT = 15
 const PADDING_Y = 15
-const DRAW_WIDTH = WIDTH - PADDING_X * 2
+const DRAW_WIDTH = WIDTH - (PADDING_LEFT + PADDING_RIGHT)
 const DRAW_HEIGHT = HEIGHT - PADDING_Y * 2
 
 export const getGraph = ({
@@ -54,7 +55,7 @@ export const getGraph = ({
     const hour = new Date(time).getHours()
     drawVerticalLine({
       label: hour % 3 === 0 ? hour + "h" : "",
-      x: PADDING_X + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
+      x: PADDING_LEFT + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
       context,
       width: hour % 6 === 0 ? 2 : 1,
       lineColor: hour % 6 === 0 ? "#bbb" : "#ddd",
@@ -68,7 +69,7 @@ export const getGraph = ({
   })
 
   const dataPoints = validData.map(({ time, value }) => ({
-    x: PADDING_X + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
+    x: PADDING_LEFT + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
     y:
       PADDING_Y -
       (valueToCoordinate(value, min, max, DRAW_HEIGHT) - DRAW_HEIGHT),
@@ -78,7 +79,7 @@ export const getGraph = ({
     markers.forEach(({ time, value }) =>
       drawVerticalLine({
         label: value,
-        x: PADDING_X + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
+        x: PADDING_LEFT + valueToCoordinate(time, minTime, maxTime, DRAW_WIDTH),
         context,
         width: 2,
         lineColor: "#dda900",
@@ -103,7 +104,7 @@ export const getGraph = ({
   const nowText = nowValueData.value + unit
   const nowValueCoordinate = dataPoints[dataPoints.length - 1]
   const measuredNow = context.measureText(nowText)
-  const nowX = WIDTH - PADDING_X * 2 - measuredNow.width
+  const nowX = DRAW_WIDTH - measuredNow.width
   const nowY = nowValueCoordinate.y
   const padding = 5
   context.fillStyle = "#fff8"
@@ -120,15 +121,15 @@ export const getGraph = ({
   context.fillRect(nowValueCoordinate.x - 2, nowValueCoordinate.y - 2, 4, 4)
 
   context.fillStyle = "#333"
-  context.fillText(maxValueDataPoint.value + unit, PADDING_X, PADDING_Y * 2)
+  context.fillText(maxValueDataPoint.value + unit, PADDING_LEFT, PADDING_Y * 2)
   context.fillText(
     minValueDataPoint.value + unit,
-    PADDING_X,
+    PADDING_LEFT,
     HEIGHT - PADDING_Y * 2
   )
   context.fillText(
     title,
-    WIDTH - PADDING_X - context.measureText(title).width,
+    WIDTH - PADDING_RIGHT - context.measureText(title).width,
     PADDING_Y * 2
   )
 

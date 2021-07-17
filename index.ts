@@ -189,6 +189,7 @@ const drawVerticalLine = ({
   lineColor: string
   textColor: string
 }) => {
+  context.textBaseline = "alphabetic"
   context.beginPath()
   context.moveTo(x, PADDING_Y)
   context.lineTo(x, HEIGHT - PADDING_Y)

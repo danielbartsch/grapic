@@ -1,4 +1,5 @@
-import { getGraph } from "../index"
+import assert = require("assert")
+import { getGraph, timesToNearestRemainderLess } from "../index"
 
 getGraph({
   data: [
@@ -128,3 +129,78 @@ getGraph({
   title: "13.7.2021",
   unit: "°C",
 })
+
+getGraph({
+  data: [
+    { time: 1000 * 60 * 60 * 0, value: 24 },
+    { time: 1000 * 60 * 60 * 96, value: 26 },
+  ],
+  fileName: __dirname + "/96hours.png",
+  title: "96h",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    { time: 1000 * 60 * 60 * 4, value: 24 },
+    { time: 1000 * 60 * 60 * 100, value: 26 },
+  ],
+  fileName: __dirname + "/96hours2.png",
+  title: "96h",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    { time: 1000 * 60 * 60 * 4, value: 24 },
+    { time: 1000 * 60 * 60 * 100.1, value: 26 },
+  ],
+  fileName: __dirname + "/96hours3.png",
+  title: "96h",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    { time: 1000 * 60 * 60 * 0, value: 9 },
+    { time: 1000 * 60 * 60 * 24 * 3, value: 12 },
+    { time: 1000 * 60 * 60 * 24 * 6, value: 14 },
+    { time: 1000 * 60 * 60 * 24 * 9, value: 25 },
+    { time: 1000 * 60 * 60 * 24 * 12, value: 35 },
+    { time: 1000 * 60 * 60 * 24 * 14, value: 31 },
+  ],
+  fileName: __dirname + "/2weeks.png",
+  title: "2w",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    { time: 1000 * 60 * 60 * 0, value: 9 },
+    { time: 1000 * 60 * 60 * 24 * 3, value: 12 },
+    { time: 1000 * 60 * 60 * 24 * 6, value: 14 },
+    { time: 1000 * 60 * 60 * 24 * 9, value: 25 },
+    { time: 1000 * 60 * 60 * 24 * 12, value: 35 },
+    { time: 1000 * 60 * 60 * 24 * 15, value: 31 },
+    { time: 1000 * 60 * 60 * 24 * 18, value: 29 },
+    { time: 1000 * 60 * 60 * 24 * 21, value: -1 },
+    { time: 1000 * 60 * 60 * 24 * 24, value: 4 },
+    { time: 1000 * 60 * 60 * 24 * 27, value: 20 },
+    { time: 1000 * 60 * 60 * 24 * 30, value: 16 },
+  ],
+  fileName: __dirname + "/1month.png",
+  title: "1m",
+  unit: "°C",
+})
+
+const TIMEZONE_OFFSET_MINUTES = -60
+const TIMEZONE_OFFSET_MILLISECONDS = TIMEZONE_OFFSET_MINUTES * 60 * 1000
+const easiest = timesToNearestRemainderLess(
+  86400000,
+  86400001,
+  3600000,
+  TIMEZONE_OFFSET_MINUTES
+)
+
+assert.strictEqual(easiest.minTime, 86400000 + TIMEZONE_OFFSET_MILLISECONDS)
+assert.strictEqual(easiest.maxTime, 86400000 + 3600000)

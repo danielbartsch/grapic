@@ -49,24 +49,8 @@ export const getGraph = ({
 
   const minTime = validData[0].time
   const maxTime = validData[validData.length - 1].time
-  const timeSpan = maxTime - minTime
 
-  const HOUR_MS = 1000 * 60 * 60
-  Array.from({ length: Math.ceil(timeSpan / HOUR_MS) }).forEach((_, index) => {
-    const time = HOUR_MS * index + minTime
-    const hour = new Date(time).getHours()
-    drawVerticalLine({
-      label: hour % 3 === 0 ? hour + "h" : "",
-      x: dataPointToXCoordinate(
-        { value: 0, time },
-        { min: minTime, max: maxTime }
-      ),
-      context,
-      width: hour % 6 === 0 ? 2 : 1,
-      lineColor: hour % 6 === 0 ? "#bbb" : "#ddd",
-      textColor: "#333",
-    })
-  })
+  drawVerticalTimeLines(context, minTime, maxTime)
 
   const { min, max } = roundAxis({
     minValue: minValueDataPoint.value,
@@ -156,6 +140,147 @@ export const getGraph = ({
   canvas.createPNGStream().pipe(outStream)
   return outStream
 }
+
+const drawVerticalTimeLines = (
+  context: CanvasRenderingContext2D,
+  minTime: number,
+  maxTime: number
+) => {
+  const timeSpan = maxTime - minTime
+  const HOUR_MS = 1000 * 60 * 60
+
+  if (timeSpan < HOUR_MS * 96) {
+    drawVerticalLinesEveryNth({
+      context,
+      minTime,
+      maxTime,
+      nthMilliseconds: HOUR_MS,
+      getProps: (time) => {
+        const hour = new Date(time).getHours()
+
+        const dateTime = new Date(time)
+        return {
+          label: hour % 3 === 0 ? hour + "h" : "",
+          width: hour % 6 === 0 ? 2 : 1,
+          lineColor: hour % 6 === 0 ? "#bbb" : "#ddd",
+        }
+      },
+    })
+  } else if (timeSpan < HOUR_MS * 24 * 10) {
+    drawVerticalLinesEveryNth({
+      context,
+      minTime,
+      maxTime,
+      nthMilliseconds: HOUR_MS * 3,
+      getProps: (time) => {
+        const hour = new Date(time).getHours()
+
+        const dateTime = new Date(time)
+
+        let label = ""
+        if (dateTime.getHours() === 0) {
+          label = `${twoDigit(dateTime.getDate())}.${twoDigit(
+            dateTime.getMonth() + 1
+          )}`
+        } else if (dateTime.getHours() === 12) {
+          label = `${twoDigit(dateTime.getHours())}:${twoDigit(
+            dateTime.getMinutes()
+          )}`
+        }
+
+        return {
+          label,
+          width: hour % 8 === 0 ? 2 : 1,
+          lineColor: hour % 8 === 0 ? "#bbb" : "#ddd",
+        }
+      },
+    })
+  } else if (timeSpan < HOUR_MS * 24 * 31) {
+    drawVerticalLinesEveryNth({
+      context,
+      minTime,
+      maxTime,
+      nthMilliseconds: HOUR_MS * 24,
+      getProps: (time) => {
+        const hour = new Date(time).getHours()
+
+        const dateTime = new Date(time)
+
+        return {
+          label:
+            dateTime.getDate() % 2 === 0
+              ? `${twoDigit(dateTime.getDate())}.${twoDigit(
+                  dateTime.getMonth() + 1
+                )}`
+              : "",
+          width: dateTime.getDate() % 2 === 0 ? 2 : 1,
+          lineColor: dateTime.getDate() % 2 === 0 ? "#bbb" : "#ddd",
+        }
+      },
+    })
+  }
+}
+
+export const timesToNearestRemainderLess = (
+  minTime: number,
+  maxTime: number,
+  nthMilliseconds: number,
+  timezoneOffset: number = new Date().getTimezoneOffset() // minutes
+) => {
+  const timezoneOffsetMilliseconds = timezoneOffset * 60 * 1000
+  return {
+    minTime: minTime - (minTime % nthMilliseconds) + timezoneOffsetMilliseconds,
+    maxTime: maxTime + (nthMilliseconds - (maxTime % nthMilliseconds)),
+  }
+}
+
+const drawVerticalLinesEveryNth = ({
+  context,
+  minTime,
+  maxTime,
+  nthMilliseconds,
+  getProps,
+}: {
+  context: CanvasRenderingContext2D
+  minTime: number
+  maxTime: number
+  nthMilliseconds: number
+  getProps: (
+    time: number
+  ) => Omit<
+    Parameters<typeof drawVerticalLine>[0],
+    "context" | "textColor" | "x"
+  >
+}) => {
+  const {
+    minTime: minTimeRoundedToNextNthMillisecondsDivider,
+    maxTime: maxTimeRoundedToNextNthMillisecondsDivider,
+  } = timesToNearestRemainderLess(minTime, maxTime, nthMilliseconds)
+  const timeSpan =
+    maxTimeRoundedToNextNthMillisecondsDivider -
+    minTimeRoundedToNextNthMillisecondsDivider
+
+  Array.from({ length: Math.ceil(timeSpan / nthMilliseconds) }).forEach(
+    (_, index) => {
+      const time =
+        nthMilliseconds * index + minTimeRoundedToNextNthMillisecondsDivider
+      drawVerticalLine({
+        context,
+        textColor: "#333",
+        x: dataPointToXCoordinate(
+          { value: 0, time },
+          {
+            min: minTimeRoundedToNextNthMillisecondsDivider,
+            max: maxTimeRoundedToNextNthMillisecondsDivider,
+          }
+        ),
+        ...getProps(time),
+      })
+    }
+  )
+}
+
+const twoDigit = (number: number) => (number < 10 ? "0" + number : number)
 
 const valueToCoordinate = (value, minValue, maxValue, maxCoordinate) =>
   ((value - minValue) / (maxValue - minValue)) * maxCoordinate

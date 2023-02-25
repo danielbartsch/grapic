@@ -112,7 +112,7 @@ export const getGraph = ({
   drawDataPointLabel({
     context,
     dataPoint: maxValueDataPoint,
-    label: "⏉ " + maxValueDataPoint.value,
+    label: "max " + maxValueDataPoint.value,
     maxTime,
     maxValue: max,
     minTime,
@@ -122,7 +122,7 @@ export const getGraph = ({
   drawDataPointLabel({
     context,
     dataPoint: minValueDataPoint,
-    label: "⏊ " + minValueDataPoint.value,
+    label: "min " + minValueDataPoint.value,
     maxTime,
     maxValue: max,
     minTime,

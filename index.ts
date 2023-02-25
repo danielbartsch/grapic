@@ -4,10 +4,10 @@ const fs = require("fs")
 
 const WIDTH = 900
 const HEIGHT = 600
-const PADDING_LEFT = 45
+const PADDING_LEFT = 55
 const PADDING_RIGHT = 15
-const PADDING_TOP = 15
-const PADDING_BOTTOM = 15
+const PADDING_TOP = 10
+const PADDING_BOTTOM = 10
 const DRAW_WIDTH = WIDTH - (PADDING_LEFT + PADDING_RIGHT)
 const DRAW_HEIGHT = HEIGHT - (PADDING_TOP + PADDING_BOTTOM)
 
@@ -61,6 +61,7 @@ export const getGraph = ({
     ticks: getAxisTicks({ minValue: min, maxValue: max }),
     min,
     max,
+    unit,
   })
 
   const dataPoints = validData.map((dataPoint) =>
@@ -101,7 +102,7 @@ export const getGraph = ({
   drawDataPointLabel({
     context,
     dataPoint: lastDataPoint,
-    label: lastDataPoint.value + unit,
+    label: String(lastDataPoint.value),
     maxTime,
     maxValue: max,
     minTime,
@@ -111,7 +112,7 @@ export const getGraph = ({
   drawDataPointLabel({
     context,
     dataPoint: maxValueDataPoint,
-    label: "max " + maxValueDataPoint.value + unit,
+    label: "max " + maxValueDataPoint.value,
     maxTime,
     maxValue: max,
     minTime,
@@ -121,7 +122,7 @@ export const getGraph = ({
   drawDataPointLabel({
     context,
     dataPoint: minValueDataPoint,
-    label: "min " + minValueDataPoint.value + unit,
+    label: "min " + minValueDataPoint.value,
     maxTime,
     maxValue: max,
     minTime,
@@ -321,12 +322,13 @@ const drawVerticalLine = ({
   context.restore()
 }
 
-const drawYAxis = ({ context, ticks, min, max }) => {
+const AXIS_TICK_MARKER_LENGTH = 8
+const FONT_PADDING_FROM_Y_AXIS = 4
+const drawYAxis = ({ context, ticks, min, max, unit }) => {
   context.beginPath()
   context.moveTo(PADDING_LEFT, PADDING_TOP)
   context.lineTo(PADDING_LEFT, PADDING_TOP + DRAW_HEIGHT)
   context.stroke()
-  const axisPadding = 8
 
   context.textBaseline = "middle"
   ticks.forEach((tickY) => {
@@ -334,14 +336,18 @@ const drawYAxis = ({ context, ticks, min, max }) => {
     context.fillStyle = "#333"
     context.fillText(
       tickY,
-      PADDING_LEFT - context.measureText(tickY).width - axisPadding * 1.5,
+      PADDING_LEFT -
+        context.measureText(tickY).width -
+        (AXIS_TICK_MARKER_LENGTH + FONT_PADDING_FROM_Y_AXIS),
       y
     )
     context.beginPath()
     context.moveTo(PADDING_LEFT, y)
-    context.lineTo(PADDING_LEFT - axisPadding, y)
+    context.lineTo(PADDING_LEFT - AXIS_TICK_MARKER_LENGTH, y)
     context.stroke()
   })
+
+  context.fillText(unit, 0, HEIGHT / 2)
 }
 
 const LABEL_BOX_PADDING = 8

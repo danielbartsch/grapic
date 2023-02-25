@@ -43,7 +43,7 @@ export const getGraph = ({
   context.fillStyle = "#F5F7F2"
   context.fillRect(0, 0, WIDTH, HEIGHT)
 
-  context.font = "15px monospace"
+  context.font = "16px monospace"
   context.textBaseline = "alphabetic"
 
   const minTime = validData[0].time
@@ -371,7 +371,7 @@ const drawDataPointLabel = ({
     maxValue,
   })
   context.textBaseline = "middle"
-  context.font = "30px monospace"
+  context.font = "24px monospace"
   const measuredLabel = context.measureText(label)
   const labelDataPointGap = 32
   const labelX =

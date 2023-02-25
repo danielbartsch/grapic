@@ -417,10 +417,7 @@ const drawDataPointLabel = ({
     dataLabelBoundaryBox.y + textHeight / 2 + LABEL_BOX_PADDING
   )
 
-  context.fillRect(
-    x - POINT_SIZE / 2,
-    y - POINT_SIZE / 2,
-    POINT_SIZE,
-    POINT_SIZE
-  )
+  context.beginPath()
+  context.arc(x, y, POINT_SIZE / 2, 0, 2 * Math.PI, false)
+  context.fill()
 }

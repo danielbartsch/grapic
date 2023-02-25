@@ -6,9 +6,10 @@ const WIDTH = 900
 const HEIGHT = 600
 const PADDING_LEFT = 45
 const PADDING_RIGHT = 15
-const PADDING_Y = 15
+const PADDING_TOP = 15
+const PADDING_BOTTOM = 15
 const DRAW_WIDTH = WIDTH - (PADDING_LEFT + PADDING_RIGHT)
-const DRAW_HEIGHT = HEIGHT - PADDING_Y * 2
+const DRAW_HEIGHT = HEIGHT - (PADDING_TOP + PADDING_BOTTOM)
 
 type DataPoint = {
   time: number
@@ -20,13 +21,11 @@ export const getGraph = ({
   markers,
   fileName,
   unit = "",
-  title = "",
 }: {
   data: Array<DataPoint>
   markers?: Array<{ time: number; value: string }>
   fileName: string
   unit?: string
-  title?: string
 }) => {
   // sorting, so results are consistent (otherwise order is not guaranteed)
   const validData = data
@@ -128,13 +127,6 @@ export const getGraph = ({
     minTime,
     minValue: min,
   })
-
-  context.fillStyle = "#333"
-  context.fillText(
-    title,
-    WIDTH - PADDING_RIGHT - context.measureText(title).width,
-    PADDING_Y * 2
-  )
 
   const outStream = fs.createWriteStream(fileName)
   canvas.createPNGStream().pipe(outStream)
@@ -289,7 +281,7 @@ const dataPointToXCoordinate = ({ time }: DataPoint, { min, max }) =>
   PADDING_LEFT + valueToCoordinate(time, min, max, DRAW_WIDTH)
 
 const dataPointToYCoordinate = ({ value }: DataPoint, { min, max }) =>
-  PADDING_Y - (valueToCoordinate(value, min, max, DRAW_HEIGHT) - DRAW_HEIGHT)
+  PADDING_TOP - (valueToCoordinate(value, min, max, DRAW_HEIGHT) - DRAW_HEIGHT)
 
 const dataPointToCoordinate = (
   dataPoint: DataPoint,
@@ -316,10 +308,10 @@ const drawVerticalLine = ({
 }) => {
   context.textBaseline = "alphabetic"
   context.beginPath()
-  context.moveTo(x, PADDING_Y)
-  context.lineTo(x, HEIGHT - PADDING_Y)
+  context.moveTo(x, PADDING_TOP)
+  context.lineTo(x, HEIGHT - PADDING_BOTTOM)
   context.save()
-  context.translate(x, HEIGHT - PADDING_Y)
+  context.translate(x, HEIGHT - PADDING_BOTTOM)
   context.rotate((Math.PI * 3) / 2)
   context.strokeStyle = lineColor
   context.fillStyle = textColor
@@ -331,8 +323,8 @@ const drawVerticalLine = ({
 
 const drawYAxis = ({ context, ticks, min, max }) => {
   context.beginPath()
-  context.moveTo(PADDING_LEFT, PADDING_Y)
-  context.lineTo(PADDING_LEFT, PADDING_Y + DRAW_HEIGHT)
+  context.moveTo(PADDING_LEFT, PADDING_TOP)
+  context.lineTo(PADDING_LEFT, PADDING_TOP + DRAW_HEIGHT)
   context.stroke()
   const axisPadding = 8
 
@@ -351,6 +343,9 @@ const drawYAxis = ({ context, ticks, min, max }) => {
     context.stroke()
   })
 }
+
+const LABEL_BOX_PADDING = 8
+const POINT_SIZE = 6
 
 const drawDataPointLabel = ({
   context,
@@ -383,20 +378,43 @@ const drawDataPointLabel = ({
     x - measuredLabel.width - labelDataPointGap < PADDING_LEFT
       ? x + labelDataPointGap
       : x - measuredLabel.width - labelDataPointGap
-  const labelBoxPadding = 8
+
+  const textHeight =
+    measuredLabel.actualBoundingBoxAscent +
+    measuredLabel.actualBoundingBoxDescent
+
+  const dataLabelBoundaryBoxHeight = textHeight + LABEL_BOX_PADDING * 2
+  const dataLabelBoundaryBox = {
+    x: labelX - LABEL_BOX_PADDING,
+    y: Math.min(
+      Math.max(
+        y - measuredLabel.actualBoundingBoxAscent - LABEL_BOX_PADDING,
+        PADDING_TOP
+      ),
+      HEIGHT - PADDING_BOTTOM - dataLabelBoundaryBoxHeight
+    ),
+    width: measuredLabel.width + LABEL_BOX_PADDING * 2,
+    height: dataLabelBoundaryBoxHeight,
+  }
   context.fillStyle = "#fff8"
   context.fillRect(
-    labelX - labelBoxPadding,
-    y - measuredLabel.actualBoundingBoxAscent - labelBoxPadding,
-    measuredLabel.width + labelBoxPadding * 2,
-    measuredLabel.actualBoundingBoxAscent +
-      measuredLabel.actualBoundingBoxDescent +
-      labelBoxPadding * 2
+    dataLabelBoundaryBox.x,
+    dataLabelBoundaryBox.y,
+    dataLabelBoundaryBox.width,
+    dataLabelBoundaryBox.height
   )
 
   context.fillStyle = "#f65"
-  context.fillText(label, labelX, y)
+  context.fillText(
+    label,
+    labelX,
+    dataLabelBoundaryBox.y + textHeight / 2 + LABEL_BOX_PADDING
+  )
 
-  const size = 6
-  context.fillRect(x - size / 2, y - size / 2, size, size)
+  context.fillRect(
+    x - POINT_SIZE / 2,
+    y - POINT_SIZE / 2,
+    POINT_SIZE,
+    POINT_SIZE
+  )
 }

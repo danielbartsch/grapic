@@ -7,7 +7,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 24, value: 100 },
   ],
   fileName: __dirname + "/two24h.png",
-  title: "two24h",
 })
 
 getGraph({
@@ -18,7 +17,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 3, value: 100 },
   ],
   fileName: __dirname + "/3h.png",
-  title: "3h",
 })
 
 getGraph({
@@ -27,7 +25,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 12, value: 20 },
   ],
   fileName: __dirname + "/negativeValues.png",
-  title: "negativeValues",
 })
 
 getGraph({
@@ -75,7 +72,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 40, value: 0.75 },
   ],
   fileName: __dirname + "/days.png",
-  title: "days",
 })
 
 getGraph({
@@ -108,7 +104,6 @@ getGraph({
     { time: 1626206148419, value: 21 },
   ],
   fileName: __dirname + "/realworld.png",
-  title: "13.7.2021",
   unit: "°C",
 })
 
@@ -126,7 +121,6 @@ getGraph({
     { time: 1626197508419, value: "Sonnenuntergang" },
   ],
   fileName: __dirname + "/marker.png",
-  title: "13.7.2021",
   unit: "°C",
 })
 
@@ -136,7 +130,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 96, value: 26 },
   ],
   fileName: __dirname + "/96hours.png",
-  title: "96h",
   unit: "°C",
 })
 
@@ -146,7 +139,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 100, value: 26 },
   ],
   fileName: __dirname + "/96hours2.png",
-  title: "96h",
   unit: "°C",
 })
 
@@ -156,7 +148,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 100.1, value: 26 },
   ],
   fileName: __dirname + "/96hours3.png",
-  title: "96h",
   unit: "°C",
 })
 
@@ -170,7 +161,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 24 * 14, value: 31 },
   ],
   fileName: __dirname + "/2weeks.png",
-  title: "2w",
   unit: "°C",
 })
 
@@ -189,7 +179,6 @@ getGraph({
     { time: 1000 * 60 * 60 * 24 * 30, value: 16 },
   ],
   fileName: __dirname + "/1month.png",
-  title: "1m",
   unit: "°C",
 })
 

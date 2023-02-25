@@ -263,8 +263,8 @@ const drawVerticalLinesEveryNth = ({
         x: dataPointToXCoordinate(
           { value: 0, time },
           {
-            min: minTimeRoundedToNextNthMillisecondsDivider,
-            max: maxTimeRoundedToNextNthMillisecondsDivider,
+            min: minTime,
+            max: maxTime,
           }
         ),
         ...getProps(time),

@@ -1,7 +1,8 @@
 const MIN_STEP_COUNT = 6
-const POSSIBLE_STEPS = [
-  1, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000,
-]
+const POSSIBLE_STEPS = Array.from({ length: 7 })
+  .map((_, index) => [1, 2, 5].map((step) => step * 10 ** index))
+  .reduce((acc, stepGroup) => acc.concat(stepGroup), [])
+
 const getNearestStep = ({
   maxValue,
   minValue,

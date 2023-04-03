@@ -157,7 +157,6 @@ const drawVerticalTimeLines = (
       getProps: (time) => {
         const hour = new Date(time).getHours()
 
-        const dateTime = new Date(time)
         return {
           label: hour % 3 === 0 ? hour + "h" : "",
           width: hour % 6 === 0 ? 2 : 1,
@@ -201,8 +200,6 @@ const drawVerticalTimeLines = (
       maxTime,
       nthMilliseconds: HOUR_MS * 24,
       getProps: (time) => {
-        const hour = new Date(time).getHours()
-
         const dateTime = new Date(time)
 
         return {

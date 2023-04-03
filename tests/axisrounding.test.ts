@@ -37,16 +37,34 @@ test("floating point", () => {
 })
 
 test("positive", () => {
-  assertEqual(
-    getAxisTicks({ minValue: 0, maxValue: 100 }),
-    [0, 20, 40, 60, 80, 100]
-  )
+  assertEqual(getAxisTicks({ minValue: 0, maxValue: 100, step: 20 }), [
+    { value: 0, label: "0" },
+    { value: 20, label: "20" },
+    { value: 40, label: "40" },
+    { value: 60, label: "60" },
+    { value: 80, label: "80" },
+    { value: 100, label: "100" },
+  ])
 })
 test("spanning negative + positive", () => {
   assertEqual(
-    getAxisTicks({ minValue: -30, maxValue: 150 }),
-    [-30, -10, 10, 30, 50, 70, 90, 110, 130, 150]
+    getAxisTicks({ minValue: -30, maxValue: 150, step: 20 }),
+    [-30, -10, 10, 30, 50, 70, 90, 110, 130, 150].map((val) => ({
+      value: val,
+      label: String(val),
+    }))
   )
+})
+test("large numbers", () => {
+  assertEqual(getAxisTicks({ minValue: -1500, maxValue: 4001, step: 1000 }), [
+    { value: -1500, label: "-1.5k" },
+    { value: -500, label: "-500" },
+    { value: 500, label: "500" },
+    { value: 1500, label: "1.5k" },
+    { value: 2500, label: "2.5k" },
+    { value: 3500, label: "3.5k" },
+    { value: 4500, label: "4.5k" },
+  ])
 })
 
 run()

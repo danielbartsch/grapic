@@ -16,6 +16,33 @@ type DataPoint = {
   value: number
 }
 
+const MIN_STEP_COUNT = 6
+
+const POSSIBLE_STEPS = Array.from({ length: 7 })
+  .map((_, index) => [1, 2, 5].map((step) => step * 10 ** index))
+  .reduce((acc, stepGroup) => acc.concat(stepGroup), [])
+
+const getNearestStep = ({
+  maxValue,
+  minValue,
+}: {
+  maxValue: number
+  minValue: number
+}) => {
+  const range = Math.abs(maxValue - minValue)
+  const roughStep = range / MIN_STEP_COUNT
+
+  return POSSIBLE_STEPS.reduce(
+    (acc, step) => {
+      const stepDiff = Math.abs(step - roughStep)
+      return stepDiff < acc.diff
+        ? { step, diff: stepDiff }
+        : { step: acc.step, diff: acc.diff }
+    },
+    { step: 0, diff: Number.POSITIVE_INFINITY }
+  ).step
+}
+
 export const getGraph = ({
   data,
   markers,
@@ -64,7 +91,11 @@ export const getGraph = ({
 
   drawYAxis({
     context,
-    ticks: getAxisTicks({ minValue: min, maxValue: max }),
+    ticks: getAxisTicks({
+      minValue: min,
+      maxValue: max,
+      step: nearestYAxisStep,
+    }),
     min,
     max,
     unit,
@@ -329,20 +360,32 @@ const drawVerticalLine = ({
 
 const AXIS_TICK_MARKER_LENGTH = 8
 const FONT_PADDING_FROM_Y_AXIS = 4
-const drawYAxis = ({ context, ticks, min, max, unit }) => {
+const drawYAxis = ({
+  context,
+  ticks,
+  min,
+  max,
+  unit,
+}: {
+  context: CanvasRenderingContext2D
+  ticks: Array<{ value: number; label: string }>
+  min: number
+  max: number
+  unit: string
+}) => {
   context.beginPath()
   context.moveTo(PADDING_LEFT, PADDING_TOP)
   context.lineTo(PADDING_LEFT, PADDING_TOP + DRAW_HEIGHT)
   context.stroke()
 
   context.textBaseline = "middle"
-  ticks.forEach((tickY) => {
+  ticks.forEach(({ value: tickY, label: tickLabel }) => {
     const y = dataPointToYCoordinate({ value: tickY, time: 0 }, { min, max })
     context.fillStyle = "#333"
     context.fillText(
-      tickY,
+      tickLabel,
       PADDING_LEFT -
-        context.measureText(tickY).width -
+        context.measureText(tickLabel).width -
         (AXIS_TICK_MARKER_LENGTH + FONT_PADDING_FROM_Y_AXIS),
       y
     )

@@ -1,29 +1,3 @@
-const MIN_STEP_COUNT = 6
-const POSSIBLE_STEPS = Array.from({ length: 7 })
-  .map((_, index) => [1, 2, 5].map((step) => step * 10 ** index))
-  .reduce((acc, stepGroup) => acc.concat(stepGroup), [])
-
-const getNearestStep = ({
-  maxValue,
-  minValue,
-}: {
-  maxValue: number
-  minValue: number
-}) => {
-  const range = Math.abs(maxValue - minValue)
-  const roughStep = range / MIN_STEP_COUNT
-
-  return POSSIBLE_STEPS.reduce(
-    (acc, step) => {
-      const stepDiff = Math.abs(step - roughStep)
-      return stepDiff < acc.diff
-        ? { step, diff: stepDiff }
-        : { step: acc.step, diff: acc.diff }
-    },
-    { step: 0, diff: Number.POSITIVE_INFINITY }
-  ).step
-}
-
 export const roundAxis = ({
   minValue,
   maxValue,
@@ -37,22 +11,49 @@ export const roundAxis = ({
   max: Math.ceil(maxValue / step) * step,
 })
 
+const STEP_ABBREVIATIONS = [
+  { label: "", power: 0 }, // 1
+  { label: "k", power: 3 }, // 1,000
+  { label: "M", power: 6 }, // 1,000,000
+  { label: "G", power: 9 }, // 1,000,000,000
+]
+const axisTickOptionWithSI = (value) => {
+  const abbreviationIndex = STEP_ABBREVIATIONS.findIndex(
+    (_, index) => Math.abs(value) < 10 ** STEP_ABBREVIATIONS[index + 1].power
+  )
+
+  const SIreducedNumber =
+    value / 10 ** STEP_ABBREVIATIONS[abbreviationIndex].power
+
+  const floatingPointRoundedValue =
+    SIreducedNumber === Math.floor(SIreducedNumber)
+      ? SIreducedNumber
+      : SIreducedNumber.toFixed(1)
+
+  return {
+    value,
+    label:
+      floatingPointRoundedValue + STEP_ABBREVIATIONS[abbreviationIndex].label,
+  }
+}
+
 export const getAxisTicks = ({
   minValue,
   maxValue,
+  step,
 }: {
   minValue: number
   maxValue: number
+  step: number
 }) => {
-  const nearestStep = getNearestStep({ maxValue, minValue })
-  const steps = []
+  const steps: Array<{ value: number; label: string }> = []
 
   let min = minValue
 
-  steps.push(min)
+  steps.push(axisTickOptionWithSI(min))
   while (min < maxValue) {
-    min += nearestStep
-    steps.push(min)
+    min += step
+    steps.push(axisTickOptionWithSI(min))
   }
   return steps
 }

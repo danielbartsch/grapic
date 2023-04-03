@@ -51,9 +51,15 @@ export const getGraph = ({
 
   drawVerticalTimeLines(context, minTime, maxTime)
 
+  const nearestYAxisStep = getNearestStep({
+    minValue: minValueDataPoint.value,
+    maxValue: maxValueDataPoint.value,
+  })
+
   const { min, max } = roundAxis({
     minValue: minValueDataPoint.value,
     maxValue: maxValueDataPoint.value,
+    step: nearestYAxisStep,
   })
 
   drawYAxis({

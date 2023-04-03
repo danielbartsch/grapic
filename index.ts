@@ -310,19 +310,21 @@ const drawVerticalLine = ({
   lineColor: string
   textColor: string
 }) => {
-  context.textBaseline = "alphabetic"
-  context.beginPath()
-  context.moveTo(x, PADDING_TOP)
-  context.lineTo(x, HEIGHT - PADDING_BOTTOM)
-  context.save()
-  context.translate(x, HEIGHT - PADDING_BOTTOM)
-  context.rotate((Math.PI * 3) / 2)
-  context.strokeStyle = lineColor
-  context.fillStyle = textColor
-  context.fillText(label, 36, -3)
-  context.lineWidth = width
-  context.stroke()
-  context.restore()
+  if (x >= PADDING_LEFT) {
+    context.textBaseline = "alphabetic"
+    context.beginPath()
+    context.moveTo(x, PADDING_TOP)
+    context.lineTo(x, HEIGHT - PADDING_BOTTOM)
+    context.save()
+    context.translate(x, HEIGHT - PADDING_BOTTOM)
+    context.rotate((Math.PI * 3) / 2)
+    context.strokeStyle = lineColor
+    context.fillStyle = textColor
+    context.fillText(label, 36, -3)
+    context.lineWidth = width
+    context.stroke()
+    context.restore()
+  }
 }
 
 const AXIS_TICK_MARKER_LENGTH = 8

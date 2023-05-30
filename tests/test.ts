@@ -204,6 +204,75 @@ getGraph({
   unit: "°C",
 })
 
+getGraph({
+  data: [
+    [
+      { time: 1626129252419, value: 20.6 },
+      { time: 1626145322819, value: 17.7 },
+      { time: 1626160010819, value: 21.3 },
+      { time: 1626171242819, value: 29.6 },
+      { time: 1626183166019, value: 37.1 },
+      { time: 1626197508419, value: 30.2 },
+    ],
+    [
+      { time: 1626129252419, value: 16.3 },
+      { time: 1626145322819, value: 16.0 },
+      { time: 1626160010819, value: 15.2 },
+      { time: 1626171242819, value: 11.0 },
+      { time: 1626183166019, value: 18.1 },
+      { time: 1626197508419, value: 22.5 },
+    ],
+  ],
+  fileName: __dirname + "/twoGroupsSameTimestamps.png",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    [
+      { time: 1626129252419, value: 20.6 },
+      { time: 1626145322819, value: 17.7 },
+      { time: 1626160010819, value: 21.3 },
+      { time: 1626171242819, value: 29.6 },
+      { time: 1626183166019, value: 37.1 },
+      { time: 1626197508419, value: 30.2 },
+    ],
+    [
+      { time: 1626130252419, value: 16.3 },
+      { time: 1626144322819, value: 16.0 },
+      { time: 1626165010819, value: 15.2 },
+      { time: 1626178242819, value: 11.0 },
+      { time: 1626184166019, value: 18.1 },
+      { time: 1626200508419, value: 22.5 },
+    ],
+  ],
+  fileName: __dirname + "/twoGroupsSlightlyOffsetTimestamps.png",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    [
+      { time: 1626129252419, value: 20.6 },
+      { time: 1626145322819, value: 17.7 },
+      { time: 1626160010819, value: 21.3 },
+      { time: 1626171242819, value: 29.6 },
+      { time: 1626183166019, value: 37.1 },
+      { time: 1626197508419, value: 30.2 },
+    ],
+    [
+      { time: 1626200252419, value: 16.3 },
+      { time: 1626210322819, value: 16.0 },
+      { time: 1626220010819, value: 15.2 },
+      { time: 1626230242819, value: 11.0 },
+      { time: 1626240166019, value: 18.1 },
+      { time: 1626250508419, value: 22.5 },
+    ],
+  ],
+  fileName: __dirname + "/twoGroupsSequential.png",
+  unit: "°C",
+})
+
 const TIMEZONE_OFFSET_MINUTES = -60
 const TIMEZONE_OFFSET_MILLISECONDS = TIMEZONE_OFFSET_MINUTES * 60 * 1000
 const easiest = timesToNearestRemainderLess(

@@ -49,21 +49,18 @@ export const getGraph = ({
   fileName,
   unit = "",
 }: {
-  data: Array<DataPoint>
+  // data needs to already be sorted by time, starting with the oldest
+  data: Array<Array<DataPoint>>
   markers?: Array<{ time: number; value: string }>
   fileName: string
   unit?: string
 }) => {
-  // sorting, so results are consistent (otherwise order is not guaranteed)
-  const validData = data
-    .sort((a, b) => a.time - b.time)
-    .filter(({ value }) => Number.isFinite(value))
-
-  const minValue = Math.min(...validData.map(({ value }) => value))
-  const minValueDataPoint = validData.find(({ value }) => value === minValue)
-
-  const maxValue = Math.max(...validData.map(({ value }) => value))
-  const maxValueDataPoint = validData.find(({ value }) => value === maxValue)
+  const {
+    maxTimeDataPoint,
+    maxValueDataPoint,
+    minTimeDataPoint,
+    minValueDataPoint,
+  } = getMinMaxFromGroups(data)
 
   const canvas = createCanvas(WIDTH, HEIGHT)
   const context = canvas.getContext("2d")
@@ -73,10 +70,7 @@ export const getGraph = ({
   context.font = "16px monospace"
   context.textBaseline = "alphabetic"
 
-  const minTime = validData[0].time
-  const maxTime = validData[validData.length - 1].time
-
-  drawVerticalTimeLines(context, minTime, maxTime)
+  drawVerticalTimeLines(context, minTimeDataPoint.time, maxTimeDataPoint.time)
 
   const nearestYAxisStep = getNearestStep({
     minValue: minValueDataPoint.value,
@@ -101,13 +95,15 @@ export const getGraph = ({
     unit,
   })
 
-  const dataPoints = validData.map((dataPoint) =>
-    dataPointToCoordinate(dataPoint, {
-      minTime,
-      maxTime,
-      minValue: min,
-      maxValue: max,
-    })
+  const dataPoints = data.map((dataGroup) =>
+    dataGroup.map((dataPoint) =>
+      dataPointToCoordinate(dataPoint, {
+        minTime: minTimeDataPoint.time,
+        maxTime: maxTimeDataPoint.time,
+        minValue: min,
+        maxValue: max,
+      })
+    )
   )
 
   if (markers) {
@@ -116,7 +112,7 @@ export const getGraph = ({
         label: value,
         x: dataPointToXCoordinate(
           { time, value: 0 },
-          { min: minTime, max: maxTime }
+          { min: minTimeDataPoint.time, max: maxTimeDataPoint.time }
         ),
         context,
         width: 2,
@@ -129,20 +125,21 @@ export const getGraph = ({
   context.beginPath()
   context.strokeStyle = "#333"
   context.lineWidth = 1
-  context.moveTo(dataPoints[0].x, dataPoints[0].y)
-  dataPoints.slice(1).forEach(({ x, y }) => {
-    context.lineTo(x, y)
+  dataPoints.forEach((dataGroup) => {
+    context.moveTo(dataGroup[0].x, dataGroup[0].y)
+    dataGroup.slice(1).forEach(({ x, y }) => {
+      context.lineTo(x, y)
+    })
   })
   context.stroke()
 
-  const lastDataPoint = validData[validData.length - 1]
   drawDataPointLabel({
     context,
-    dataPoint: lastDataPoint,
-    label: String(lastDataPoint.value),
-    maxTime,
+    dataPoint: maxTimeDataPoint,
+    label: String(maxTimeDataPoint.value),
+    maxTime: maxTimeDataPoint.time,
     maxValue: max,
-    minTime,
+    minTime: maxTimeDataPoint.time,
     minValue: min,
   })
 
@@ -150,9 +147,9 @@ export const getGraph = ({
     context,
     dataPoint: maxValueDataPoint,
     label: "max " + maxValueDataPoint.value,
-    maxTime,
+    maxTime: maxTimeDataPoint.time,
     maxValue: max,
-    minTime,
+    minTime: minTimeDataPoint.time,
     minValue: min,
   })
 
@@ -160,16 +157,65 @@ export const getGraph = ({
     context,
     dataPoint: minValueDataPoint,
     label: "min " + minValueDataPoint.value,
-    maxTime,
+    maxTime: maxTimeDataPoint.time,
     maxValue: max,
-    minTime,
+    minTime: maxTimeDataPoint.time,
     minValue: min,
   })
 
   const outStream = fs.createWriteStream(fileName)
   canvas.createPNGStream().pipe(outStream)
+
   return outStream
 }
+
+const getMinMaxFromGroups = (
+  data: Array<Array<DataPoint>>
+): {
+  minValueDataPoint: DataPoint
+  maxValueDataPoint: DataPoint
+  minTimeDataPoint: DataPoint
+  maxTimeDataPoint: DataPoint
+} =>
+  data.reduce(
+    (aggregator, dataGroup) => {
+      const minValue = Math.min(...dataGroup.map(({ value }) => value))
+      const newMinValueDataPoint =
+        minValue < aggregator.minValueDataPoint.value
+          ? dataGroup.find(({ value }) => value === minValue)
+          : aggregator.minValueDataPoint
+
+      const maxValue = Math.max(...dataGroup.map(({ value }) => value))
+      const newMaxValueDataPoint =
+        maxValue > aggregator.maxValueDataPoint.value
+          ? dataGroup.find(({ value }) => value === maxValue)
+          : aggregator.maxValueDataPoint
+
+      const minTime = dataGroup[0]
+      const newMinTimeDataPoint =
+        minTime.time < aggregator.minTimeDataPoint.time
+          ? minTime
+          : aggregator.minTimeDataPoint
+      const maxTime = dataGroup[dataGroup.length - 1]
+      const newMaxTimeDataPoint =
+        maxTime.time > aggregator.maxTimeDataPoint.time
+          ? maxTime
+          : aggregator.maxTimeDataPoint
+
+      return {
+        minValueDataPoint: newMinValueDataPoint,
+        maxValueDataPoint: newMaxValueDataPoint,
+        minTimeDataPoint: newMinTimeDataPoint,
+        maxTimeDataPoint: newMaxTimeDataPoint,
+      }
+    },
+    {
+      minValueDataPoint: { value: Number.POSITIVE_INFINITY, time: 0 },
+      maxValueDataPoint: { value: Number.NEGATIVE_INFINITY, time: 0 },
+      minTimeDataPoint: { value: 0, time: Number.POSITIVE_INFINITY },
+      maxTimeDataPoint: { value: 0, time: Number.NEGATIVE_INFINITY },
+    }
+  )
 
 const drawVerticalTimeLines = (
   context: CanvasRenderingContext2D,

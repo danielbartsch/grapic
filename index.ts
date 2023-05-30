@@ -43,6 +43,11 @@ const getNearestStep = ({
   ).step
 }
 
+type Data = Array<{
+  data: Array<DataPoint>
+  options?: Partial<{ strokeStyle: string; lineWidth: number }>
+}>
+
 export const getGraph = ({
   data,
   markers,
@@ -50,7 +55,7 @@ export const getGraph = ({
   unit = "",
 }: {
   // data needs to already be sorted by time, starting with the oldest
-  data: Array<Array<DataPoint>>
+  data: Data
   markers?: Array<{ time: number; value: string }>
   fileName: string
   unit?: string
@@ -95,16 +100,17 @@ export const getGraph = ({
     unit,
   })
 
-  const dataPoints = data.map((dataGroup) =>
-    dataGroup.map((dataPoint) =>
+  const dataPoints = data.map(({ data, ...dataGroup }) => ({
+    ...dataGroup,
+    data: data.map((dataPoint) =>
       dataPointToCoordinate(dataPoint, {
         minTime: minTimeDataPoint.time,
         maxTime: maxTimeDataPoint.time,
         minValue: min,
         maxValue: max,
       })
-    )
-  )
+    ),
+  }))
 
   if (markers) {
     markers.forEach(({ time, value }) =>
@@ -122,16 +128,16 @@ export const getGraph = ({
     )
   }
 
-  context.beginPath()
-  context.strokeStyle = "#333"
-  context.lineWidth = 1
   dataPoints.forEach((dataGroup) => {
-    context.moveTo(dataGroup[0].x, dataGroup[0].y)
-    dataGroup.slice(1).forEach(({ x, y }) => {
+    context.beginPath()
+    context.strokeStyle = dataGroup.options?.strokeStyle ?? "#333"
+    context.lineWidth = dataGroup.options?.lineWidth ?? 1
+    context.moveTo(dataGroup.data[0].x, dataGroup.data[0].y)
+    dataGroup.data.slice(1).forEach(({ x, y }) => {
       context.lineTo(x, y)
     })
+    context.stroke()
   })
-  context.stroke()
 
   drawDataPointLabel({
     context,
@@ -170,7 +176,7 @@ export const getGraph = ({
 }
 
 const getMinMaxFromGroups = (
-  data: Array<Array<DataPoint>>
+  data: Data
 ): {
   minValueDataPoint: DataPoint
   maxValueDataPoint: DataPoint
@@ -179,24 +185,24 @@ const getMinMaxFromGroups = (
 } =>
   data.reduce(
     (aggregator, dataGroup) => {
-      const minValue = Math.min(...dataGroup.map(({ value }) => value))
+      const minValue = Math.min(...dataGroup.data.map(({ value }) => value))
       const newMinValueDataPoint =
         minValue < aggregator.minValueDataPoint.value
-          ? dataGroup.find(({ value }) => value === minValue)
+          ? dataGroup.data.find(({ value }) => value === minValue)
           : aggregator.minValueDataPoint
 
-      const maxValue = Math.max(...dataGroup.map(({ value }) => value))
+      const maxValue = Math.max(...dataGroup.data.map(({ value }) => value))
       const newMaxValueDataPoint =
         maxValue > aggregator.maxValueDataPoint.value
-          ? dataGroup.find(({ value }) => value === maxValue)
+          ? dataGroup.data.find(({ value }) => value === maxValue)
           : aggregator.maxValueDataPoint
 
-      const minTime = dataGroup[0]
+      const minTime = dataGroup.data[0]
       const newMinTimeDataPoint =
         minTime.time < aggregator.minTimeDataPoint.time
           ? minTime
           : aggregator.minTimeDataPoint
-      const maxTime = dataGroup[dataGroup.length - 1]
+      const maxTime = dataGroup.data[dataGroup.data.length - 1]
       const newMaxTimeDataPoint =
         maxTime.time > aggregator.maxTimeDataPoint.time
           ? maxTime

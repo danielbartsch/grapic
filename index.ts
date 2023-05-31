@@ -145,7 +145,7 @@ export const getGraph = ({
     label: String(maxTimeDataPoint.value),
     maxTime: maxTimeDataPoint.time,
     maxValue: max,
-    minTime: maxTimeDataPoint.time,
+    minTime: minTimeDataPoint.time,
     minValue: min,
   })
 
@@ -165,7 +165,7 @@ export const getGraph = ({
     label: "min " + minValueDataPoint.value,
     maxTime: maxTimeDataPoint.time,
     maxValue: max,
-    minTime: maxTimeDataPoint.time,
+    minTime: minTimeDataPoint.time,
     minValue: min,
   })
 

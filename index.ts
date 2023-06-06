@@ -182,8 +182,8 @@ const getMinMaxFromGroups = (
   maxValueDataPoint: DataPoint
   minTimeDataPoint: DataPoint
   maxTimeDataPoint: DataPoint
-} =>
-  data.reduce(
+} => {
+  const { minValueDataPoint, maxValueDataPoint } = data.reduce(
     (aggregator, dataGroup) => {
       const minValue = Math.min(...dataGroup.data.map(({ value }) => value))
       const newMinValueDataPoint =
@@ -197,31 +197,25 @@ const getMinMaxFromGroups = (
           ? dataGroup.data.find(({ value }) => value === maxValue)
           : aggregator.maxValueDataPoint
 
-      const minTime = dataGroup.data[0]
-      const newMinTimeDataPoint =
-        minTime.time < aggregator.minTimeDataPoint.time
-          ? minTime
-          : aggregator.minTimeDataPoint
-      const maxTime = dataGroup.data[dataGroup.data.length - 1]
-      const newMaxTimeDataPoint =
-        maxTime.time > aggregator.maxTimeDataPoint.time
-          ? maxTime
-          : aggregator.maxTimeDataPoint
-
       return {
         minValueDataPoint: newMinValueDataPoint,
         maxValueDataPoint: newMaxValueDataPoint,
-        minTimeDataPoint: newMinTimeDataPoint,
-        maxTimeDataPoint: newMaxTimeDataPoint,
       }
     },
     {
       minValueDataPoint: { value: Number.POSITIVE_INFINITY, time: 0 },
       maxValueDataPoint: { value: Number.NEGATIVE_INFINITY, time: 0 },
-      minTimeDataPoint: { value: 0, time: Number.POSITIVE_INFINITY },
-      maxTimeDataPoint: { value: 0, time: Number.NEGATIVE_INFINITY },
     }
   )
+
+  const lastGroup = data[data.length - 1]
+  return {
+    minValueDataPoint,
+    maxValueDataPoint,
+    minTimeDataPoint: data[0].data[0],
+    maxTimeDataPoint: lastGroup.data[lastGroup.data.length - 1],
+  }
+}
 
 const drawVerticalTimeLines = (
   context: CanvasRenderingContext2D,

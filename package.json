@@ -1,5 +1,5 @@
 {
-  "name": "graph",
+  "name": "grapic",
   "version": "1.0.0",
   "description": "Create a PNG file that displays a graph",
   "main": "index.ts",

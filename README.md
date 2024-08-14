@@ -1,0 +1,1 @@
+Find examples on how to use in `tests/test.ts`

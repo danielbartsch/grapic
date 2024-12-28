@@ -50,13 +50,19 @@ type Data = Array<{
 
 export const getGraph = ({
   data,
-  markers,
+  verticalMarkers,
+  horizontalMarkers,
   fileName,
   unit = "",
 }: {
   // data needs to already be sorted by time, starting with the oldest
   data: Data
-  markers?: Array<{ time: number; value: string }>
+  verticalMarkers?: Array<{ time: number; label: string; lineWidth?: number }>
+  horizontalMarkers?: Array<{
+    value: number
+    label: string
+    lineWidth?: number
+  }>
   fileName: string
   unit?: string
 }) => {
@@ -88,6 +94,19 @@ export const getGraph = ({
     step: nearestYAxisStep,
   })
 
+  if (horizontalMarkers) {
+    horizontalMarkers.forEach(({ label, value, lineWidth }) =>
+      drawHorizontalLine({
+        label,
+        y: dataPointToYCoordinate({ time: 0, value }, { min, max }),
+        context,
+        width: lineWidth ?? 2,
+        lineColor: "#ccc",
+        textColor: "#ccc",
+      })
+    )
+  }
+
   drawYAxis({
     context,
     ticks: getAxisTicks({
@@ -112,16 +131,16 @@ export const getGraph = ({
     ),
   }))
 
-  if (markers) {
-    markers.forEach(({ time, value }) =>
+  if (verticalMarkers) {
+    verticalMarkers.forEach(({ time, label, lineWidth }) =>
       drawVerticalLine({
-        label: value,
+        label,
         x: dataPointToXCoordinate(
           { time, value: 0 },
           { min: minTimeDataPoint.time, max: maxTimeDataPoint.time }
         ),
         context,
-        width: 2,
+        width: lineWidth ?? 2,
         lineColor: "#dda900",
         textColor: "#dda900",
       })
@@ -133,9 +152,9 @@ export const getGraph = ({
     context.strokeStyle = dataGroup.options?.strokeStyle ?? "#333"
     context.lineWidth = dataGroup.options?.lineWidth ?? 1
     context.moveTo(dataGroup.data[0].x, dataGroup.data[0].y)
-    dataGroup.data.slice(1).forEach(({ x, y }) => {
-      context.lineTo(x, y)
-    })
+    dataGroup.data
+      .slice(1)
+      .forEach((dataPoint) => context.lineTo(dataPoint.x, dataPoint.y))
     context.stroke()
   })
 
@@ -397,11 +416,40 @@ const drawVerticalLine = ({
     context.rotate((Math.PI * 3) / 2)
     context.strokeStyle = lineColor
     context.fillStyle = textColor
-    context.fillText(label, 36, -3)
+    context.fillText(label, 16, -8)
     context.lineWidth = width
     context.stroke()
     context.restore()
   }
+}
+
+const drawHorizontalLine = ({
+  label = "",
+  y,
+  context,
+  width,
+  lineColor,
+  textColor,
+}: {
+  label?: string
+  y: number
+  context: CanvasRenderingContext2D
+  width: number
+  lineColor: string
+  textColor: string
+}) => {
+  context.textBaseline = "alphabetic"
+  context.beginPath()
+  context.moveTo(PADDING_LEFT, y)
+  context.lineTo(WIDTH - PADDING_RIGHT, y)
+  context.save()
+  context.translate(PADDING_LEFT, y)
+  context.strokeStyle = lineColor
+  context.fillStyle = textColor
+  context.fillText(label, 16, -8)
+  context.lineWidth = width
+  context.stroke()
+  context.restore()
 }
 
 const AXIS_TICK_MARKER_LENGTH = 8

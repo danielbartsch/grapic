@@ -140,11 +140,32 @@ getGraph({
       ],
     },
   ],
-  markers: [
-    { time: (1626145322819 + 1626160010819) / 2, value: "Sonnenaufgang" },
-    { time: 1626197508419, value: "Sonnenuntergang" },
+  verticalMarkers: [
+    { time: (1626145322819 + 1626160010819) / 2, label: "Sonnenaufgang" },
+    { time: 1626197508419, label: "Sonnenuntergang" },
   ],
   fileName: __dirname + "/marker.png",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    {
+      data: [
+        { time: 1626129252419, value: -1.5 },
+        { time: 1626145322819, value: 1.5 },
+        { time: 1626160010819, value: 5 },
+        { time: 1626171242819, value: 9 },
+        { time: 1626183166019, value: -0.5 },
+        { time: 1626197508419, value: -3 },
+      ],
+    },
+  ],
+  horizontalMarkers: [
+    { value: 0, label: "" },
+    { value: 3, label: "Glatteisgefahr", lineWidth: 1 },
+  ],
+  fileName: __dirname + "/marker_h.png",
   unit: "°C",
 })
 

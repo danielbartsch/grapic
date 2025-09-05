@@ -21,9 +21,13 @@ const STEP_ABBREVIATIONS = [
   { label: "G", power: 9 }, // 1,000,000,000
 ]
 const axisTickOptionWithSI = (value) => {
-  const abbreviationIndex = STEP_ABBREVIATIONS.findIndex(
-    (_, index) => Math.abs(value) < 10 ** STEP_ABBREVIATIONS[index + 1].power
-  )
+  const abbreviationIndex =
+    value === 0
+      ? STEP_ABBREVIATIONS.findIndex(({ power }) => power === 0)
+      : STEP_ABBREVIATIONS.findIndex(
+          (_, index) =>
+            Math.abs(value) < 10 ** STEP_ABBREVIATIONS[index + 1].power
+        )
 
   const SIreducedNumber =
     value / 10 ** STEP_ABBREVIATIONS[abbreviationIndex].power

@@ -204,13 +204,19 @@ const getMinMaxFromGroups = (
 } => {
   const { minValueDataPoint, maxValueDataPoint } = data.reduce(
     (aggregator, dataGroup) => {
-      const minValue = Math.min(...dataGroup.data.map(({ value }) => value))
+      const minValue = dataGroup.data.reduce(
+        (min, { value }) => (value < min ? value : min),
+        dataGroup.data[0].value
+      )
       const newMinValueDataPoint =
         minValue < aggregator.minValueDataPoint.value
           ? dataGroup.data.find(({ value }) => value === minValue)
           : aggregator.minValueDataPoint
 
-      const maxValue = Math.max(...dataGroup.data.map(({ value }) => value))
+      const maxValue = dataGroup.data.reduce(
+        (max, { value }) => (value > max ? value : max),
+        dataGroup.data[0].value
+      )
       const newMaxValueDataPoint =
         maxValue > aggregator.maxValueDataPoint.value
           ? dataGroup.data.find(({ value }) => value === maxValue)

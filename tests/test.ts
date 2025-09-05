@@ -357,6 +357,75 @@ getGraph({
   unit: "°C",
 })
 
+getGraph({
+  data: [
+    {
+      data: [
+        { time: new Date(2023, 2, 3, 21, 55).getTime(), value: 4 },
+        { time: new Date(2023, 2, 5, 23, 10).getTime(), value: 10 },
+      ],
+    },
+    {
+      data: [
+        { time: new Date(2023, 2, 4, 22, 7).getTime(), value: 11 },
+        { time: new Date(2023, 2, 6, 21, 13).getTime(), value: 3 },
+      ],
+    },
+  ],
+  fileName: __dirname + "/realtestcase.png",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    {
+      data: [
+        { time: new Date(2023, 0, 1, 7, 0).getTime(), value: 4 },
+        { time: new Date(2023, 3, 10, 7, 0).getTime(), value: 10 },
+      ],
+    },
+  ],
+  fileName: __dirname + "/4months.png",
+  unit: "°C",
+})
+
+getGraph({
+  data: [
+    {
+      data: [
+        { time: new Date(2023, 0, 1, 7, 0).getTime(), value: 4 },
+        { time: new Date(2023, 11, 31, 7, 0).getTime(), value: 10 },
+      ],
+    },
+  ],
+  fileName: __dirname + "/12months.png",
+  unit: "°C",
+})
+getGraph({
+  data: [
+    {
+      data: [
+        { time: new Date(2023, 1, 1, 7, 0).getTime(), value: 4 },
+        { time: new Date(2025, 0, 1, 7, 0).getTime(), value: 10 },
+      ],
+    },
+  ],
+  fileName: __dirname + "/2years.png",
+  unit: "°C",
+})
+getGraph({
+  data: [
+    {
+      data: [
+        { time: new Date(2021, 0, 1, 7, 0).getTime(), value: 4 },
+        { time: new Date(2025, 0, 1, 7, 0).getTime(), value: 10 },
+      ],
+    },
+  ],
+  fileName: __dirname + "/4years.png",
+  unit: "°C",
+})
+
 const TIMEZONE_OFFSET_MINUTES = -60
 const TIMEZONE_OFFSET_MILLISECONDS = TIMEZONE_OFFSET_MINUTES * 60 * 1000
 const easiest = timesToNearestRemainderLess(

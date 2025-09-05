@@ -12,6 +12,9 @@ export const roundAxis = ({
 })
 
 const STEP_ABBREVIATIONS = [
+  { label: "µ", power: -6 }, // 0.000,001
+  { label: "m", power: -3 }, // 0.001
+  { label: "c", power: -2 }, // 0.01
   { label: "", power: 0 }, // 1
   { label: "k", power: 3 }, // 1,000
   { label: "M", power: 6 }, // 1,000,000

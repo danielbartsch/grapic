@@ -19,7 +19,7 @@ type DataPoint = {
 const MIN_STEP_COUNT = 6
 
 const POSSIBLE_STEPS = Array.from({ length: 7 })
-  .map((_, index) => [1, 2, 5].map((step) => step * 10 ** index))
+  .map((_, index) => [0.1, 0.2, 0.5, 1, 2, 5].map((step) => step * 10 ** index))
   .reduce((acc, stepGroup) => acc.concat(stepGroup), [])
 
 const getNearestStep = ({
@@ -307,6 +307,99 @@ const drawVerticalTimeLines = (
               : "",
           width: dateTime.getDate() % 2 === 0 ? 2 : 1,
           lineColor: dateTime.getDate() % 2 === 0 ? "#bbb" : "#ddd",
+        }
+      },
+    })
+  } else if (timeSpan < HOUR_MS * 24 * 120) {
+    const todaysWeekday = new Date().getDay()
+    drawVerticalLinesEveryNth({
+      context,
+      minTime,
+      maxTime,
+      nthMilliseconds: HOUR_MS * 24,
+      getProps: (time) => {
+        const dateTime = new Date(time)
+
+        const date = dateTime.getDate()
+
+        return {
+          label:
+            dateTime.getDay() === todaysWeekday
+              ? `${twoDigit(date)}.${twoDigit(dateTime.getMonth() + 1)}`
+              : "",
+          width: dateTime.getDay() === todaysWeekday ? 1 : 0,
+          lineColor: dateTime.getDay() === todaysWeekday ? "#bbb" : "#ddd",
+        }
+      },
+    })
+  } else if (timeSpan < HOUR_MS * 24 * 365) {
+    drawVerticalLinesEveryNth({
+      context,
+      minTime,
+      maxTime,
+      nthMilliseconds: HOUR_MS * 24,
+      getProps: (time) => {
+        const dateTime = new Date(time)
+
+        const date = dateTime.getDate()
+
+        const markerCondition = date === 1
+
+        return {
+          label: markerCondition
+            ? `${twoDigit(date)}.${twoDigit(dateTime.getMonth() + 1)}`
+            : "",
+          width: markerCondition ? 1 : 0,
+          lineColor: markerCondition
+            ? "#bbb"
+            : date === 15
+            ? "#ddd"
+            : "transparent",
+        }
+      },
+    })
+  } else if (timeSpan < HOUR_MS * 24 * 730) {
+    drawVerticalLinesEveryNth({
+      context,
+      minTime,
+      maxTime,
+      nthMilliseconds: HOUR_MS * 24,
+      getProps: (time) => {
+        const dateTime = new Date(time)
+
+        const date = dateTime.getDate()
+
+        const markerCondition = date === 1
+
+        return {
+          label: markerCondition
+            ? `${twoDigit(date)}.${twoDigit(dateTime.getMonth() + 1)}`
+            : "",
+          width: markerCondition ? 1 : 0,
+          lineColor: markerCondition ? "#bbb" : "transparent",
+        }
+      },
+    })
+  } else {
+    drawVerticalLinesEveryNth({
+      context,
+      minTime,
+      maxTime,
+      nthMilliseconds: HOUR_MS * 24,
+      getProps: (time) => {
+        const dateTime = new Date(time)
+
+        const date = dateTime.getDate()
+
+        const markerCondition =
+          date === 1 && (dateTime.getMonth() + 1) % 2 === 0
+
+        return {
+          label: markerCondition
+            ? `${twoDigit(date)}.${twoDigit(dateTime.getMonth() + 1)}`
+            : "",
+          width: markerCondition ? 1 : 0,
+          lineColor: markerCondition ? "#bbb" : "transparent",
         }
       },
     })
